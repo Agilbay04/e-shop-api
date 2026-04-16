@@ -16,7 +16,7 @@ func NewStoreHandler(ss service.StoreService) *StoreHandler {
 	return &StoreHandler{ss}
 }
 
-func (h *StoreHandler) Create(ctx *gin.Context) {
+func (h *StoreHandler) CreateStore(ctx *gin.Context) {
 	user := util.GetCurrentUser(ctx)
 	var req dto.CreateStoreRequest
 	req.UserID = user.ID
@@ -26,11 +26,11 @@ func (h *StoreHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	res, err := h.storeService.CreateStore(&req, &user)
+	res, err := h.storeService.CreateStore(req, user)
 	if err != nil {
 		ctx.Error(util.UnprocessableEntityException(err.Error()))
 		return
 	}
 
-	Success(ctx, res, "Success create data")
+	Created(ctx, res, "Success create data")
 }

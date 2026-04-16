@@ -7,4 +7,5 @@ type CreateStoreResponse struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	UserID      uuid.UUID `json:"user_id"`
+	Username    string    `json:"username"`
 }

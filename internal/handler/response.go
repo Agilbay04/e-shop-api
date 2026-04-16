@@ -50,8 +50,14 @@ func RespondError(c *gin.Context, code int, message string, errs interface{}, st
 	})
 }
 
-func Success(c *gin.Context, data interface{}, message string) {
+func Ok(c *gin.Context, data interface{}, message string) {
     c.Set("payload", data)
     c.Set("message", message)
     c.Set("status", http.StatusOK)
+}
+
+func Created(c *gin.Context, data interface{}, message string) {
+	c.Set("payload", data)
+	c.Set("message", message)
+	c.Set("status", http.StatusCreated)
 }

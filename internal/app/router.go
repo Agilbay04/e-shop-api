@@ -26,7 +26,10 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry) {
 		protected.Use(middleware.AuthMiddleware())
 		{
 			// Store Routes
-			protected.POST("/store", h.StoreHandler.Create)
+			protected.POST("/store", h.StoreHandler.CreateStore)
+
+			// Product Routes
+			protected.POST("/product", h.ProductHandler.CreateProduct)
 		}
 	}
 }

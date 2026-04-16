@@ -25,6 +25,14 @@ func ResponseMiddleware() gin.HandlerFunc {
 				// Try get error message from err
 				// If err is *util.CustomError
 				if customErr, ok := err.(*util.CustomError); ok {
+					// If status code is 400
+					if statusCode == 400 && customErr.Errors != nil {
+						// If errors is implement validator.ValidationErrors
+						if rawErr, isErr := customErr.Errors.(error); isErr {
+							customErr.Errors = util.FormatValidationError(rawErr)
+						}
+					}
+
 					handler.RespondError(c, statusCode, customErr.Message, customErr.Errors, "")
 					return
 				}
@@ -38,10 +46,18 @@ func ResponseMiddleware() gin.HandlerFunc {
 		// If there is no error get payload
 		if data, exists := c.Get("payload"); exists {
 			message, _ := c.Get("message")
-			status, _ := c.Get("status")
-			
-			statusCode := status.(int)
-			msgString := message.(string)
+    
+			// Get status code, if nil set to 200
+			status, exists := c.Get("status")
+			statusCode := http.StatusOK
+			if exists {
+				statusCode = status.(int)
+			}
+
+			msgString := "Success"
+			if message != nil {
+				msgString = message.(string)
+			}
 
 			handler.RespondSuccess(c, statusCode, msgString, data)
 		}

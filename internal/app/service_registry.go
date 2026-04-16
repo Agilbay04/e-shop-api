@@ -14,6 +14,6 @@ func NewServiceRegistry(repo *RepositoryRegistry) *ServiceRegistry {
 	return &ServiceRegistry{
 		AuthService:    service.NewAuthService(repo.UserRepo, repo.UserQuery),
 		StoreService:   service.NewStoreService(repo.StoreRepo, repo.StoreQuery, repo.UserQuery),
-		ProductService: service.NewProductService(repo.ProductRepo, repo.ProductQuery),
+		ProductService: service.NewProductService(repo.ProductRepo, repo.ProductQuery, repo.StoreQuery),
 	}
 }

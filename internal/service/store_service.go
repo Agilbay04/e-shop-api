@@ -8,7 +8,7 @@ import (
 )
 
 type StoreService interface {
-	CreateStore(req *dto.CreateStoreRequest, user *dto.CurrentUser) (dto.CreateStoreResponse, error)
+	CreateStore(req dto.CreateStoreRequest, user dto.CurrentUser) (dto.CreateStoreResponse, error)
 }
 
 type storeService struct {
@@ -30,8 +30,8 @@ func NewStoreService(
 }
 
 func (s *storeService) CreateStore(
-	req *dto.CreateStoreRequest, 
-	user *dto.CurrentUser,
+	req dto.CreateStoreRequest, 
+	user dto.CurrentUser,
 ) (dto.CreateStoreResponse, error) {
     if user.Role != "seller" {
         return dto.CreateStoreResponse{}, errors.New("User is not a seller")
@@ -47,6 +47,10 @@ func (s *storeService) CreateStore(
 		Name: req.Name,
 		Description: req.Description,
 		UserID: req.UserID,
+		Base: model.Base {
+			CreatedBy: user.ID,
+			UpdatedBy: user.ID,
+		},
 	}
 
 	if err := s.storeRepo.Create(store); err != nil {
@@ -58,5 +62,6 @@ func (s *storeService) CreateStore(
 		Name: store.Name,
 		Description: store.Description,
 		UserID: store.UserID,
+		Username: user.Username,
 	}, nil
 }

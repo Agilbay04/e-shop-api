@@ -19,7 +19,7 @@ func NewAuthHandler(as service.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(ctx *gin.Context) {
 	var req dto.RegisterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.Error(err)
+		ctx.Error(util.BadRequestException("Invalid request body", err))
 		return
 	}
 
@@ -29,13 +29,13 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	Success(ctx, res, "Success create data")
+	Created(ctx, res, "Success create data")
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {
 	var req dto.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.Error(util.BadRequestException("Invalid request body", err.Error()))
+		ctx.Error(util.BadRequestException("Invalid request body", err))
 		return
 	}
 
@@ -45,5 +45,5 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	Success(ctx, res, "Login success")
+	Ok(ctx, res, "Login success")
 }
