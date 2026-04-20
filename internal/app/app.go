@@ -31,7 +31,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	repoRegistry := NewRepositoryRegistry(db)
 
 	// Register service
-	svcRegistry := NewServiceRegistry(repoRegistry)
+	svcRegistry := NewServiceRegistry(repoRegistry, db)
 	
 	// Register handler
 	handlerRegistry := NewHandlerRegistry(svcRegistry)

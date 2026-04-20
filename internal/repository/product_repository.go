@@ -9,6 +9,7 @@ type ProductRepository interface {
 	Create(product *model.Product) error
 	Update(product *model.Product) error
 	Delete(id string) error
+	UpdateStock(tx *gorm.DB, id string, newStock int) error
 }
 
 type productRepository struct {
@@ -29,4 +30,8 @@ func (r *productRepository) Update(product *model.Product) error {
 
 func (r *productRepository) Delete(id string) error {
 	return r.db.Delete(&model.Product{}, "id = ?", id).Error
+}
+
+func (r *productRepository) UpdateStock(tx *gorm.DB, id string, newStock int) error {
+    return tx.Model(&model.Product{}).Where("id = ?", id).Update("stock", newStock).Error
 }

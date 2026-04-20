@@ -14,6 +14,8 @@ func RunMigration(db *gorm.DB) {
 		&model.User{},
 		&model.Store{},
 		&model.Product{},
+		&model.Order{},
+		&model.OrderItem{},
 		
 		// Add more models here
 	)

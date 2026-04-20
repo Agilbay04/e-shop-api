@@ -1,6 +1,7 @@
 package util
 
 import (
+	"e-shop-api/internal/model"
 	"errors"
 	"os"
 	"time"
@@ -10,14 +11,14 @@ import (
 )
 
 type CustomClaims struct {
-	ID       uuid.UUID 	`json:"id"`
-	Username string    	`json:"username"`
-	Email    string    	`json:"email"`
-	Role     string    	`json:"role"`
+	ID       uuid.UUID 		`json:"id"`
+	Username string    		`json:"username"`
+	Email    string    		`json:"email"`
+	Role     model.UserRole	`json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(id uuid.UUID, username, email, role string) (string, error) {
+func GenerateToken(id uuid.UUID, username, email string, role model.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
 
 	claims := CustomClaims{
@@ -26,7 +27,7 @@ func GenerateToken(id uuid.UUID, username, email, role string) (string, error) {
 		Email:    email,
 		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // JWT TTL 15 minutes
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)), // JWT TTL 1 hour
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

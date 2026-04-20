@@ -30,6 +30,9 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry) {
 
 			// Product Routes
 			protected.POST("/product", h.ProductHandler.CreateProduct)
+
+			// Order Routes
+			protected.POST("/order", h.OrderHandler.CreateOrder)
 		}
 	}
 }

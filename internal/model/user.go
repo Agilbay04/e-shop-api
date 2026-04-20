@@ -5,13 +5,21 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserRole string
+
+const (
+	Buyer UserRole = "buyer"
+	Seller UserRole = "seller"
+	Admin UserRole = "admin"
+)
+
 type User struct {
 	Base
-	Username string `gorm:"unique;not null;column:username" json:"username"`
-	Email    string `gorm:"unique;not null;column:email" json:"email"`
-	Password string `gorm:"not null;column:password" json:"password"`
-	Role     string `gorm:"type:varchar(20);default:buyer;column:role" json:"role"`
-	IsActive bool   `gorm:"default:true;column:is_active" json:"is_active"`
+	Username string 	`gorm:"unique;not null;column:username" json:"username"`
+	Email    string 	`gorm:"unique;not null;column:email" json:"email"`
+	Password string 	`gorm:"not null;column:password" json:"password"`
+	Role     UserRole 	`gorm:"type:varchar(20);default:buyer;column:role" json:"role"`
+	IsActive bool		`gorm:"default:true;column:is_active" json:"is_active"`
 }
 
 func (User) TableName() string {

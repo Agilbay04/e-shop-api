@@ -37,7 +37,8 @@ func (s *productService) CreateProduct(
 ) (dto.CreateProductResponse, error) {
 	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
-		return dto.CreateProductResponse{}, util.ForbiddenException("You must have store to add products")
+		return dto.CreateProductResponse{}, 
+			util.ForbiddenException("User " + user.Username + " doesn't have a store, can't create product")
 	}
 
 	product := model.Product {

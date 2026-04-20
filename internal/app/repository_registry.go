@@ -12,6 +12,7 @@ type RepositoryRegistry struct {
 	StoreQuery       repository.StoreQueryRepository
 	ProductRepo      repository.ProductRepository
 	ProductQuery     repository.ProductQueryRepository
+	OrderRepo        repository.OrderRepository
 }
 
 func NewRepositoryRegistry(db *gorm.DB) *RepositoryRegistry {
@@ -22,5 +23,6 @@ func NewRepositoryRegistry(db *gorm.DB) *RepositoryRegistry {
 		StoreQuery:   repository.NewStoreQueryRepository(db),
 		ProductRepo:  repository.NewProductRepository(db),
 		ProductQuery: repository.NewProductQueryRepository(db),
+		OrderRepo:    repository.NewOrderRepository(db),
 	}
 }

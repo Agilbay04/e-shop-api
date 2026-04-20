@@ -1,10 +1,12 @@
 package dto
 
+import "e-shop-api/internal/model"
+
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required,min=3"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-	Role     string `json:"role" binding:"required,oneof=admin seller buyer"`
+	Username string 		`json:"username" binding:"required,min=3"`
+	Email    string 		`json:"email" binding:"required,email"`
+	Password string 		`json:"password" binding:"required,min=6"`
+	Role     model.UserRole `json:"role" binding:"required,oneof=admin seller buyer"`
 }
 
 type LoginRequest struct {
