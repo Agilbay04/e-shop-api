@@ -21,7 +21,7 @@ type APIResponse struct {
 type ErrorResponse struct {
 	Success      bool        `json:"success"`
 	ErrorMessage string      `json:"error_message"`
-	StackTrace   string      `json:"stack_trace,omitempty"` // omitempty: sembunyikan jika kosong
+	StackTrace   string      `json:"stack_trace,omitempty"` // omitempty: hide if empty
 	Errors       interface{} `json:"errors"`
 	StatusCode   int         `json:"status_code"`
 	Version      string      `json:"version"`
@@ -73,9 +73,9 @@ func OkPagination(c *gin.Context, data interface{}, total int64, filter dto.Pagi
 }
 
 func Ok(c *gin.Context, data interface{}, message string) {
-    c.Set("payload", data)
-    c.Set("message", message)
-    c.Set("status", http.StatusOK)
+	c.Set("payload", data)
+	c.Set("message", message)
+	c.Set("status", http.StatusOK)
 }
 
 func Created(c *gin.Context, data interface{}, message string) {
