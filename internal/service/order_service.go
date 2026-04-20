@@ -39,6 +39,13 @@ func (o *orderService) CreateOrder(
 	req dto.OrderRequest, 
 	user dto.CurrentUser,
 ) (dto.OrderResponse, error) {
+    // Set Status
+    if req.IsCheckout {
+        req.Status = model.Pending
+    } else {
+        req.Status = model.Draft
+    }
+
     // Begin Transaction
     tx := o.db.Begin()
     
@@ -58,7 +65,7 @@ func (o *orderService) CreateOrder(
     }
 
     // Save Order
-    newOrder, err := o.saveOrder(tx, user.ID, totalOrderPrice)
+    newOrder, err := o.saveOrder(tx, user.ID, totalOrderPrice, req.Status)
     if err != nil {
         tx.Rollback()
         return dto.OrderResponse{}, err
@@ -146,13 +153,15 @@ func (o *orderService) prepareOrderData(
 
 func (o *orderService) saveOrder(
 	tx *gorm.DB, 
-	userID uuid.UUID, total int,
+	userID uuid.UUID, 
+    total int,
+    status model.OrderStatus,
 ) (*model.Order, error) {
     newOrder := &model.Order{
         Base:       model.Base{CreatedBy: userID},
         UserID:     userID,
         GrandTotal: total,
-        Status:     model.Draft,
+        Status:     status,
     }
     if err := o.orderRepo.CreateOrder(tx, newOrder); err != nil {
         return nil, err

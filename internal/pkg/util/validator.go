@@ -29,6 +29,8 @@ func MsgForTag(tag string, param string) string {
 			return "Invalid email format"
 		case "min":
 			return fmt.Sprintf("Minimum value is %s", param)
+		case "max":
+			return fmt.Sprintf("Maximum value is %s", param)
 		case "gt":
 			return fmt.Sprintf("Value must be greater than %s", param)
 		case "gte":

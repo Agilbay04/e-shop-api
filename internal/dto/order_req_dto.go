@@ -7,6 +7,7 @@ import (
 )
 
 type OrderRequest struct {
+    IsCheckout bool                 `json:"is_checkout"`
     GrandTotal int                  `json:"grand_total"`
     Status     model.OrderStatus    `json:"status"`
     OrderItems []OrderItemRequest   `json:"order_items" binding:"required"`

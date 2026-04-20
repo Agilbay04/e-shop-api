@@ -19,7 +19,10 @@ func NewOrderHandler(orderService service.OrderService) *OrderHandler {
 }
 
 func (h *OrderHandler) CreateOrder(ctx *gin.Context) {
-	var req dto.OrderRequest
+	req := dto.OrderRequest {
+		IsCheckout: true,
+	}
+
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(util.BadRequestException("Invalid request body", err))
 		return

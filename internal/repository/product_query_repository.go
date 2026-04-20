@@ -1,14 +1,16 @@
 package repository
 
 import (
+	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
+	"e-shop-api/internal/pkg/util"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type ProductQueryRepository interface {
-	FindAll() ([]model.Product, error)
+	FindAllPagination(req dto.QueryProductRequest) ([]dto.ProductResponse, int64, error)
 	FindBySlug(slug string) (*model.Product, error)
 	FindByID(id string) (*model.Product, error)
 	FindByIDPreloadStore(id string) (*model.Product, error)
@@ -23,11 +25,65 @@ func NewProductQueryRepository(db *gorm.DB) ProductQueryRepository {
 	return &productQueryRepository{db}
 }
 
-func (r *productQueryRepository) FindAll() ([]model.Product, error) {
+func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest) ([]dto.ProductResponse, int64, error) {
 	var products []model.Product
-	// Preload "Store" agar data toko muncul di JSON produk
-	err := r.db.Find(&products).Error
-	return products, err
+	var total int64
+	
+	query := r.db.Model(&model.Product{})
+
+	// Filtering - Search by Name (Case Insensitive)
+	if req.Search != "" {
+		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
+	}
+
+	// Filtering - Store ID
+	if req.StoreID != nil {
+		query = query.Where("store_id = ?", *req.StoreID)
+	}
+
+	// Filtering ID
+	if req.ID != nil {
+		query = query.Where("id = ?", *req.ID)
+	}
+
+	// Filtering - Price Range
+	if req.MinPrice != nil {
+		query = query.Where("price >= ?", *req.MinPrice)
+	}
+	if req.MaxPrice != nil {
+		query = query.Where("price <= ?", *req.MaxPrice)
+	}
+
+	// Count Total Data (before pagination)
+	query.Count(&total)
+
+	// Pagination & Sorting
+	err := query.Scopes(util.Paginate(req.Page, req.Limit)).
+		Order(req.SortBy + " " + req.OrderBy).
+		Preload("Store").
+		Find(&products).Error
+
+	// Map model.Product to dto.ProductResponse
+	productsResponse := make([]dto.ProductResponse, len(products))
+	for i, product := range products {
+		productsResponse[i] = dto.ProductResponse{
+			ID:          product.ID.String(),
+			Name:        product.Name,
+			Description: product.Description,
+			Price:       product.Price,
+			Stock:       product.Stock,
+			Unit:        product.Unit,
+			CreatedAt: 	 product.CreatedAt.String(),
+			CreatedBy: 	 product.CreatedBy.String(),
+			UpdatedAt: 	 product.UpdatedAt.String(),
+			UpdatedBy: 	 product.UpdatedBy.String(),
+			DeletedAt:   product.DeletedAt.Time.String(),
+			StoreID:     product.StoreID.String(),
+			StoreName:   product.Store.Name,
+		}
+	}
+
+	return productsResponse, total, err
 }
 
 func (r *productQueryRepository) FindBySlug(slug string) (*model.Product, error) {

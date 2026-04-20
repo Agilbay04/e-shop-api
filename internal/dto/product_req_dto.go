@@ -1,5 +1,13 @@
 package dto
 
+type QueryProductRequest struct {
+	PaginationParam
+	StoreID *string `form:"store_id" binding:"required"`
+	ID *string `form:"id"`
+	MinPrice *int `form:"min_price"`
+	MaxPrice *int `form:"max_price"`
+}
+
 type CreateProductRequest struct {
 	Name        string  `json:"name" binding:"required"`
 	Description string  `json:"description"`

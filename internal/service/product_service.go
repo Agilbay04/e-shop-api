@@ -9,7 +9,7 @@ import (
 
 type ProductService interface {
 	CreateProduct(product dto.CreateProductRequest, user dto.CurrentUser) (dto.CreateProductResponse, error)
-	GetAllProducts() ([]model.Product, error)
+	GetPagination(dto.QueryProductRequest) ([]dto.ProductResponse, int64, error)
 	GetProductBySlug(slug string) (*model.Product, error)
 }
 
@@ -69,8 +69,8 @@ func (s *productService) CreateProduct(
 	}, nil
 }
 
-func (s *productService) GetAllProducts() ([]model.Product, error) {
-	return s.productQueryRepo.FindAll()
+func (s *productService) GetPagination(req dto.QueryProductRequest) ([]dto.ProductResponse, int64, error) {
+	return s.productQueryRepo.FindAllPagination(req)
 }
 
 func (s *productService) GetProductBySlug(slug string) (*model.Product, error) {

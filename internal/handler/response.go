@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"e-shop-api/internal/dto"
+	"math"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +10,6 @@ import (
 
 const AppVersion = "1.0.0"
 
-// Response standar untuk sukses
 type APIResponse struct {
 	StatusCode int         `json:"status_code"`
 	Message    string      `json:"message"`
@@ -17,7 +18,6 @@ type APIResponse struct {
 	Version    string      `json:"version"`
 }
 
-// Response standar untuk error
 type ErrorResponse struct {
 	Success      bool        `json:"success"`
 	ErrorMessage string      `json:"error_message"`
@@ -27,7 +27,6 @@ type ErrorResponse struct {
 	Version      string      `json:"version"`
 }
 
-// RespondSuccess mengirim response sukses yang seragam
 func RespondSuccess(c *gin.Context, code int, message string, data interface{}) {
 	c.JSON(code, APIResponse{
 		StatusCode: code,
@@ -38,7 +37,6 @@ func RespondSuccess(c *gin.Context, code int, message string, data interface{}) 
 	})
 }
 
-// RespondError mengirim response error yang seragam
 func RespondError(c *gin.Context, code int, message string, errs interface{}, stack string) {
 	c.JSON(code, ErrorResponse{
 		Success:      false,
@@ -48,6 +46,30 @@ func RespondError(c *gin.Context, code int, message string, errs interface{}, st
 		StatusCode:   code,
 		Version:      AppVersion,
 	})
+}
+
+func RespondPagination(c *gin.Context, data interface{}, totalData int64, page, limit int, message string) {
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+
+	res := dto.PaginationResponse{
+		Data: data,
+		Meta: dto.MetaData{
+			CurrentPage: page,
+			TotalPage:   totalPage,
+			TotalData:   totalData,
+			Limit:       limit,
+		},
+	}
+
+	RespondSuccess(c, 200, message, res)
+}
+
+func OkPagination(c *gin.Context, data interface{}, total int64, filter dto.PaginationParam, message string) {
+	c.Set("payload", data)
+	c.Set("total_data", total)
+	c.Set("pagination_filter", filter)
+	c.Set("message", message)
+	c.Set("is_pagination", true)
 }
 
 func Ok(c *gin.Context, data interface{}, message string) {

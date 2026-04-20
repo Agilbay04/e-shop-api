@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"e-shop-api/internal/dto"
 	"e-shop-api/internal/handler"
 	"e-shop-api/internal/pkg/util"
 	"net/http"
@@ -46,6 +47,7 @@ func ResponseMiddleware() gin.HandlerFunc {
 		// If there is no error get payload
 		if data, exists := c.Get("payload"); exists {
 			message, _ := c.Get("message")
+			isPagination, _ := c.Get("is_pagination")
     
 			// Get status code, if nil set to 200
 			status, exists := c.Get("status")
@@ -57,6 +59,15 @@ func ResponseMiddleware() gin.HandlerFunc {
 			msgString := "Success"
 			if message != nil {
 				msgString = message.(string)
+			}
+
+			if isPagination == true {
+				total, _ := c.Get("total_data")
+        		filter, _ := c.Get("pagination_filter")
+        		f := filter.(dto.PaginationParam)
+        
+        		handler.RespondPagination(c, data, total.(int64), f.Page, f.Limit, message.(string))
+        		return
 			}
 
 			handler.RespondSuccess(c, statusCode, msgString, data)
