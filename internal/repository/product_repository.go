@@ -8,7 +8,7 @@ import (
 type ProductRepository interface {
 	Create(product *model.Product) error
 	Update(product *model.Product) error
-	Delete(id string) error
+	Delete(product *model.Product) error
 	UpdateStock(tx *gorm.DB, id string, newStock int) error
 }
 
@@ -28,8 +28,8 @@ func (r *productRepository) Update(product *model.Product) error {
 	return r.db.Save(product).Error
 }
 
-func (r *productRepository) Delete(id string) error {
-	return r.db.Delete(&model.Product{}, "id = ?", id).Error
+func (r *productRepository) Delete(product *model.Product) error {
+	return r.db.Save(product).Error
 }
 
 func (r *productRepository) UpdateStock(tx *gorm.DB, id string, newStock int) error {

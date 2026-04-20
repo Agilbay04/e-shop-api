@@ -4,13 +4,14 @@ import (
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 type ProductQueryRepository interface {
-	FindAllPagination(req dto.QueryProductRequest) ([]dto.ProductResponse, int64, error)
+	FindAllPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error)
 	FindBySlug(slug string) (*model.Product, error)
 	FindByID(id string) (*model.Product, error)
 	FindByIDPreloadStore(id string) (*model.Product, error)
@@ -25,7 +26,7 @@ func NewProductQueryRepository(db *gorm.DB) ProductQueryRepository {
 	return &productQueryRepository{db}
 }
 
-func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest) ([]dto.ProductResponse, int64, error) {
+func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error) {
 	var products []model.Product
 	var total int64
 	
@@ -54,6 +55,11 @@ func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest) 
 		query = query.Where("price <= ?", *req.MaxPrice)
 	}
 
+	// Filtering - Is Active
+	if req.IsActive != nil {
+		query = query.Where("is_active = ?", *req.IsActive)
+	}
+
 	// Count Total Data (before pagination)
 	query.Count(&total)
 
@@ -73,11 +79,12 @@ func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest) 
 			Price:       product.Price,
 			Stock:       product.Stock,
 			Unit:        product.Unit,
-			CreatedAt: 	 product.CreatedAt.String(),
+			IsActive: 	 product.IsActive,
+			CreatedAt: 	 product.CreatedAt.Format(time.RFC3339),
 			CreatedBy: 	 product.CreatedBy.String(),
-			UpdatedAt: 	 product.UpdatedAt.String(),
+			UpdatedAt: 	 product.UpdatedAt.Format(time.RFC3339),
 			UpdatedBy: 	 product.UpdatedBy.String(),
-			DeletedAt:   product.DeletedAt.Time.String(),
+			DeletedAt:   product.DeletedAt.Time.Format(time.RFC3339),
 			StoreID:     product.StoreID.String(),
 			StoreName:   product.Store.Name,
 		}

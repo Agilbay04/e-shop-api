@@ -3,14 +3,13 @@ package repository
 import (
 	"e-shop-api/internal/model"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type StoreQueryRepository interface {
 	FindAll() ([]model.Store, error)
 	FindByID(id string) (*model.Store, error)
-	FindByUserID(userID uuid.UUID) (*model.Store, error)
+	FindByUserID(userID string) (*model.Store, error)
 }
 
 type storeQueryRepository struct {
@@ -33,7 +32,7 @@ func (r *storeQueryRepository) FindByID(id string) (*model.Store, error) {
 	return &store, err
 }
 
-func (r *storeQueryRepository) FindByUserID(userID uuid.UUID) (*model.Store, error) {
+func (r *storeQueryRepository) FindByUserID(userID string) (*model.Store, error) {
 	var store model.Store
 	err := r.db.Where("user_id = ?", userID).First(&store).Error
 	return &store, err

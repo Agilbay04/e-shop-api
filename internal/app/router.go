@@ -26,14 +26,17 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry) {
 		protected.Use(middleware.AuthMiddleware())
 		{
 			// Store Routes
-			protected.POST("/store", h.StoreHandler.CreateStore)
+			protected.POST("/stores", h.StoreHandler.CreateStore)
 
 			// Product Routes
-			protected.GET("/product", h.ProductHandler.Index)
-			protected.POST("/product", h.ProductHandler.CreateProduct)
+			protected.GET("/products", h.ProductHandler.Index)
+			protected.POST("/products", h.ProductHandler.CreateProduct)
+			protected.PUT("/products/:id", h.ProductHandler.UpdateProduct)
+			protected.PATCH("/products/:id", h.ProductHandler.DeleteProduct)
+			protected.PATCH("/products/activate", h.ProductHandler.ActivateProduct)
 
 			// Order Routes
-			protected.POST("/order", h.OrderHandler.CreateOrder)
+			protected.POST("/orders", h.OrderHandler.CreateOrder)
 		}
 	}
 }

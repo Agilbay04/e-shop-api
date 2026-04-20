@@ -37,7 +37,7 @@ func (s *storeService) CreateStore(
         return dto.CreateStoreResponse{}, errors.New("User is not a seller")
     }
 
-    existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID)
+    existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID.String())
     
     if err == nil && existingStore != nil {
         return dto.CreateStoreResponse{}, errors.New("User " + user.Username + " already has a store")

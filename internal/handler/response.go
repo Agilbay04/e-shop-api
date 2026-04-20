@@ -52,7 +52,7 @@ func RespondPagination(c *gin.Context, data interface{}, totalData int64, page, 
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 
 	res := dto.PaginationResponse{
-		Data: data,
+		Items: data,
 		Meta: dto.MetaData{
 			CurrentPage: page,
 			TotalPage:   totalPage,

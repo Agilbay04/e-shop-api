@@ -16,6 +16,6 @@ type MetaData struct {
 }
 
 type PaginationResponse struct {
-	Data interface{} `json:"data"`
-	Meta MetaData    `json:"meta"`
+	Items interface{} `json:"items"`
+	Meta MetaData     `json:"meta"`
 }
