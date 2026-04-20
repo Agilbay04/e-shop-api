@@ -37,7 +37,10 @@ e-shop-api/
 
 - **User Authentication**: Register and login with JWT-based authentication
 - **Store Management**: Create and manage stores
-- **Product Management**: Manage products (model layer ready)
+- **Product Management**: CRUD operations for products with categories
+- **Order Management**: Create and manage orders with order items
+- **Pagination**: Built-in pagination support for list endpoints
+- **Custom Validation**: Request validation with custom validators
 
 ## Getting Started
 
@@ -105,18 +108,25 @@ The server will start on `http://localhost:8001` (or the port specified in `.env
 
 ### Public Routes
 
-| Method | Endpoint         | Description       |
-|--------|------------------|-------------------|
-| POST   | /api/v1/auth/register | Register new user |
-| POST   | /api/v1/auth/login    | Login user        |
+| Method | Endpoint                  | Description           |
+|--------|---------------------------|-----------------------|
+| POST   | /api/v1/auth/register    | Register new user    |
+| POST   | /api/v1/auth/login       | Login user           |
 
 ### Protected Routes (Requires JWT)
 
-| Method | Endpoint   | Description   |
-|--------|------------|---------------|
-| POST   | /api/v1/store | Create store  |
-
-*Note: Additional endpoints for products and stores are available in the codebase.*
+| Method | Endpoint                    | Description              |
+|--------|-----------------------------|--------------------------|
+| POST   | /api/v1/stores              | Create store            |
+| GET    | /api/v1/stores              | List stores             |
+| POST   | /api/v1/products            | Create product          |
+| GET    | /api/v1/products            | List products (paginated)|
+| GET    | /api/v1/products/:id        | Get product by ID       |
+| PUT    | /api/v1/products/:id        | Update product          |
+| DELETE | /api/v1/products/:id        | Delete product          |
+| POST   | /api/v1/orders              | Create order            |
+| GET    | /api/v1/orders              | List orders (paginated) |
+| GET    | /api/v1/orders/:id          | Get order by ID         |
 
 ## Request/Response Examples
 
@@ -153,13 +163,64 @@ Response:
 
 ### Create Store (Protected)
 ```bash
-POST /api/v1/store
+POST /api/v1/stores
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "name": "My Store",
   "description": "Store description"
+}
+```
+
+### Create Product (Protected)
+```bash
+POST /api/v1/products
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Product Name",
+  "description": "Product description",
+  "price": 99.99,
+  "stock": 100,
+  "category_id": "uuid-of-category"
+}
+```
+
+### List Products (Paginated)
+```bash
+GET /api/v1/products?page=1&limit=10
+Authorization: Bearer <token>
+```
+
+Response:
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total_items": 50,
+    "total_pages": 5
+  }
+}
+```
+
+### Create Order (Protected)
+```bash
+POST /api/v1/orders
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "store_id": "uuid-of-store",
+  "items": [
+    {
+      "product_id": "uuid-of-product",
+      "quantity": 2
+    }
+  ]
 }
 ```
 
