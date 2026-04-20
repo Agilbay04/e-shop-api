@@ -6,7 +6,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(user *model.User) error
+	Create(tx *gorm.DB, user *model.User) error
 }
 
 type userRepository struct {
@@ -17,6 +17,9 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db}
 }
 
-func (r *userRepository) Create(user *model.User) error {
+func (r *userRepository) Create(tx *gorm.DB, user *model.User) error {
+	if tx != nil {
+		return tx.Create(user).Error
+	}
 	return r.db.Create(user).Error
 }

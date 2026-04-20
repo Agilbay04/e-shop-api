@@ -5,6 +5,8 @@ import (
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/repository"
 	"errors"
+
+	"gorm.io/gorm"
 )
 
 type StoreService interface {
@@ -12,56 +14,75 @@ type StoreService interface {
 }
 
 type storeService struct {
-	storeRepo repository.StoreRepository
+	db             *gorm.DB
+	storeRepo      repository.StoreRepository
 	storeQueryRepo repository.StoreQueryRepository
-	userQueryRepo repository.UserQueryRepository
+	userQueryRepo  repository.UserQueryRepository
 }
 
 func NewStoreService(
-	storeRepo repository.StoreRepository, 
-	storeQueryRepo repository.StoreQueryRepository, 
+	db *gorm.DB,
+	storeRepo repository.StoreRepository,
+	storeQueryRepo repository.StoreQueryRepository,
 	userQueryRepo repository.UserQueryRepository,
 ) StoreService {
-	return &storeService {
-		storeRepo, 
+	return &storeService{
+		db,
+		storeRepo,
 		storeQueryRepo,
 		userQueryRepo,
 	}
 }
 
 func (s *storeService) CreateStore(
-	req dto.CreateStoreRequest, 
+	req dto.CreateStoreRequest,
 	user dto.CurrentUser,
 ) (dto.CreateStoreResponse, error) {
-    if user.Role != "seller" {
-        return dto.CreateStoreResponse{}, errors.New("User is not a seller")
-    }
+	tx := s.db.Begin()
 
-    existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID.String())
-    
-    if err == nil && existingStore != nil {
-        return dto.CreateStoreResponse{}, errors.New("User " + user.Username + " already has a store")
-    }
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
 
-	store := &model.Store {
-		Name: req.Name,
+	if user.Role != "seller" {
+		tx.Rollback()
+		return dto.CreateStoreResponse{}, errors.New("User is not a seller")
+	}
+
+	existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID.String())
+
+	if err == nil && existingStore != nil {
+		tx.Rollback()
+		return dto.CreateStoreResponse{}, errors.New("User " + user.Username + " already has a store")
+	}
+
+	store := &model.Store{
+		Name:        req.Name,
 		Description: req.Description,
-		UserID: req.UserID,
-		Base: model.Base {
+		UserID:      req.UserID,
+		Base: model.Base{
 			CreatedBy: user.ID,
 			UpdatedBy: user.ID,
 		},
 	}
 
-	if err := s.storeRepo.Create(store); err != nil {
+	if err := s.storeRepo.Create(tx, store); err != nil {
+		tx.Rollback()
 		return dto.CreateStoreResponse{}, err
 	}
 
-    return dto.CreateStoreResponse{
-		ID: store.ID,
-		Name: store.Name,
+	if err := tx.Commit().Error; err != nil {
+		return dto.CreateStoreResponse{}, err
+	}
+
+	return dto.CreateStoreResponse{
+		ID:          store.ID,
+		Name:        store.Name,
 		Description: store.Description,
-		UserID: store.UserID,
-		Username: user.Username,
+		UserID:      store.UserID,
+		Username:    user.Username,
 	}, nil
 }

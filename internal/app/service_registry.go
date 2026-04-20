@@ -15,9 +15,9 @@ type ServiceRegistry struct {
 
 func NewServiceRegistry(repo *RepositoryRegistry, db *gorm.DB) *ServiceRegistry {
 	return &ServiceRegistry{
-		AuthService:    service.NewAuthService(repo.UserRepo, repo.UserQuery),
-		StoreService:   service.NewStoreService(repo.StoreRepo, repo.StoreQuery, repo.UserQuery),
-		ProductService: service.NewProductService(repo.ProductRepo, repo.ProductQuery, repo.StoreQuery),
+		AuthService:    service.NewAuthService(db, repo.UserRepo, repo.UserQuery),
+		StoreService:   service.NewStoreService(db, repo.StoreRepo, repo.StoreQuery, repo.UserQuery),
+		ProductService: service.NewProductService(db, repo.ProductRepo, repo.ProductQuery, repo.StoreQuery),
 		OrderService:   service.NewOrderService(db, repo.OrderRepo, repo.ProductRepo, repo.ProductQuery),
 	}
 }

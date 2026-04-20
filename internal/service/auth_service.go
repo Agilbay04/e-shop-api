@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type AuthService interface {
@@ -16,20 +17,36 @@ type AuthService interface {
 }
 
 type authService struct {
-	userRepo  repository.UserRepository
+	db            *gorm.DB
+	userRepo      repository.UserRepository
 	userQueryRepo repository.UserQueryRepository
 }
 
 func NewAuthService(
-	ur repository.UserRepository, 
-	uq repository.UserQueryRepository,
+	db *gorm.DB,
+	userRepo repository.UserRepository,
+	userQueryRepo repository.UserQueryRepository,
 ) AuthService {
-	return &authService{ur, uq}
+	return &authService{
+		db,
+		userRepo,
+		userQueryRepo,
+	}
 }
 
 func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error) {
+	tx := s.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
 	u, err := s.userQueryRepo.FindByEmail(req.Email)
 	if err == nil && u != nil {
+		tx.Rollback()
 		return dto.UserResponse{}, errors.New("user already exists")
 	}
 
@@ -40,7 +57,12 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 		Role:     req.Role,
 	}
 
-	if err := s.userRepo.Create(&newUser); err != nil {
+	if err := s.userRepo.Create(tx, &newUser); err != nil {
+		tx.Rollback()
+		return dto.UserResponse{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		return dto.UserResponse{}, err
 	}
 
@@ -53,9 +75,9 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 }
 
 func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
-u, err := s.userQueryRepo.FindByEmail(req.Email)
+	u, err := s.userQueryRepo.FindByEmail(req.Email)
 	if err != nil {
-		return dto.LoginResponse{}, util.UnprocessableEntityException("User email " +  req.Email + " is not registered")
+		return dto.LoginResponse{}, util.UnprocessableEntityException("User email " + req.Email + " is not registered")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
