@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"slices"
 	"e-shop-api/internal/dto"
+	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"strings"
 
@@ -48,4 +50,29 @@ func AuthMiddleware() gin.HandlerFunc {
 		ctx.Set("currentUser", currentUser)
 		ctx.Next()
 	}
+}
+
+func RoleMiddleware(roles ...model.UserRole) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+        // Get user from context
+        val, exists := ctx.Get("currentUser")
+        if !exists {
+            ctx.Error(util.UnauthorizedException("Unauthorized"))
+			ctx.Abort()
+            return
+        }
+
+        user := val.(dto.CurrentUser)
+        
+        // Check if user role is allowed
+        isAllowed := slices.Contains(roles, user.Role)
+
+        if !isAllowed {
+			ctx.Error(util.ForbiddenException("Access is denied for your role"))
+			ctx.Abort()
+            return
+        }
+
+        ctx.Next()
+    }
 }

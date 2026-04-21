@@ -39,6 +39,7 @@ e-shop-api/
 ## Features
 
 - **User Authentication**: Register and login with JWT-based authentication
+- **RBAC**: Role-based access control
 - **Store Management**: Create, update, delete, and activate/deactivate stores
 - **Product Management**: CRUD operations for products with categories
 - **Order Management**: Create, list, update, cancel, and confirm orders with order items

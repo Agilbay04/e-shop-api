@@ -5,38 +5,77 @@ import "github.com/gin-gonic/gin"
 func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry) {
 	api := r.Group("/api/v1")
 	{
-		/** PUBLIC ROUTES */
-		// Auth Routes
-		auth := api.Group("/auth")
-		{
-			auth.POST("/register", h.AuthHandler.Register)
-			auth.POST("/login", h.AuthHandler.Login)
-		}
+		// Auth Routes (Public)
+		registerAuthRoutes(api, h)
 
-		/** PROTECTED ROUTES */
+		// Protected Routes (Common Auth)
 		protected := api.Group("/")
 		protected.Use(m.Auth)
 		{
-			// Store Routes
-			protected.GET("/stores", h.StoreHandler.GetStores)
-			protected.POST("/stores", h.StoreHandler.CreateStore)
-			protected.PUT("/stores/:id", h.StoreHandler.UpdateStore)
-			protected.PATCH("/stores/:id", h.StoreHandler.DeleteStore)
-			protected.PATCH("/stores/activate", h.StoreHandler.ActivateStore)
+			registerStoreRoutes(protected, h, m)
+			registerProductRoutes(protected, h, m)
+			registerOrderRoutes(protected, h, m)
+		}
+	}
+}
 
-			// Product Routes
-			protected.GET("/products", h.ProductHandler.Index)
-			protected.POST("/products", h.ProductHandler.CreateProduct)
-			protected.PUT("/products/:id", h.ProductHandler.UpdateProduct)
-			protected.PATCH("/products/:id", h.ProductHandler.DeleteProduct)
-			protected.PATCH("/products/activate", h.ProductHandler.ActivateProduct)
+// Sub Routes
+func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry) {
+	auth := api.Group("/auth")
+	{
+		auth.POST("/register", h.AuthHandler.Register)
+		auth.POST("/login", h.AuthHandler.Login)
+	}
+}
 
-			// Order Routes
-			protected.GET("/orders", h.OrderHandler.GetOrders)
-			protected.POST("/orders", h.OrderHandler.CreateOrder)
-			protected.PUT("/orders/:id", h.OrderHandler.UpdateOrder)
-			protected.PATCH("/orders/:id/cancel", h.OrderHandler.CancelOrder)
-			protected.PATCH("/orders/:id/confirm", h.OrderHandler.ConfirmOrder)
+func registerStoreRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry) {
+	stores := rg.Group("/stores")
+	{
+		// Publicly available for all authenticated users
+		stores.GET("/", h.StoreHandler.GetStores)
+		
+		// Actions requiring Seller or Admin privileges
+		privileged := stores.Group("/")
+
+		// Admin included in m.Seller registry
+		privileged.Use(m.Seller)
+		{
+			privileged.POST("/", h.StoreHandler.CreateStore)
+			privileged.PUT("/:id", h.StoreHandler.UpdateStore)
+			privileged.PATCH("/:id", h.StoreHandler.DeleteStore)
+			privileged.PATCH("/activate", h.StoreHandler.ActivateStore)
+		}
+	}
+}
+
+func registerProductRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry) {
+	products := rg.Group("/products")
+	{
+		products.GET("/", h.ProductHandler.Index)
+
+		privileged := products.Group("/")
+		privileged.Use(m.Seller)
+		{
+			privileged.POST("/", h.ProductHandler.CreateProduct)
+			privileged.PUT("/:id", h.ProductHandler.UpdateProduct)
+			privileged.PATCH("/:id", h.ProductHandler.DeleteProduct)
+			privileged.PATCH("/activate", h.ProductHandler.ActivateProduct)
+		}
+	}
+}
+
+func registerOrderRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry) {
+	orders := rg.Group("/orders")
+	{
+		orders.GET("/", h.OrderHandler.GetOrders)
+
+		buyerOnly := orders.Group("/")
+		buyerOnly.Use(m.Buyer)
+		{
+			buyerOnly.POST("/", h.OrderHandler.CreateOrder)
+			buyerOnly.PUT("/:id", h.OrderHandler.UpdateOrder)
+			buyerOnly.PATCH("/:id/cancel", h.OrderHandler.CancelOrder)
+			buyerOnly.PATCH("/:id/confirm", h.OrderHandler.ConfirmOrder)
 		}
 	}
 }

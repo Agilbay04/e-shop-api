@@ -2,6 +2,7 @@ package app
 
 import (
 	"e-shop-api/internal/middleware"
+	"e-shop-api/internal/model"
 	"os"
 	"strings"
 
@@ -10,6 +11,9 @@ import (
 
 type MiddlewareRegistry struct {
     Auth gin.HandlerFunc
+	Admin gin.HandlerFunc
+	Seller gin.HandlerFunc
+	Buyer gin.HandlerFunc
 }
 
 func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
@@ -28,5 +32,8 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 	// Selective Middlewares
 	return &MiddlewareRegistry{
         Auth: middleware.AuthMiddleware(),
+		Admin: middleware.RoleMiddleware(model.Admin),
+		Seller: middleware.RoleMiddleware(model.Seller, model.Admin),
+		Buyer: middleware.RoleMiddleware(model.Buyer),
     }
 }
