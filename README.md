@@ -45,6 +45,9 @@ e-shop-api/
 - **Email Notifications**: Automatic email notifications for order events (create, update, cancel, confirm), implement goroutine to send emails
 - **Pagination**: Built-in pagination support for list endpoints
 - **Custom Validation**: Request validation with custom validators
+- **Custom Exceptions**: Custom exception handling
+- **Error Handling**: Custom error responses with status codes
+- **Response Formatting**: Custom response formatting
 - **Transaction Support**: Database transactions for data integrity
 
 ## Getting Started
