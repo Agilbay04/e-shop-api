@@ -26,6 +26,7 @@ type orderService struct {
 	productRepo      repository.ProductRepository
 	productQueryRepo repository.ProductQueryRepository
 	storeQueryRepo   repository.StoreQueryRepository
+	notifService NotificationService
 }
 
 func NewOrderService(
@@ -35,6 +36,7 @@ func NewOrderService(
 	productRepo repository.ProductRepository,
 	productQueryRepo repository.ProductQueryRepository,
 	storeQueryRepo repository.StoreQueryRepository,
+	notifService NotificationService,
 ) OrderService {
 	return &orderService{
 		db,
@@ -43,6 +45,7 @@ func NewOrderService(
 		productRepo,
 		productQueryRepo,
 		storeQueryRepo,
+		notifService,
 	}
 }
 
@@ -91,6 +94,15 @@ func (o *orderService) CreateOrder(
 	// Commit Transaction
 	if err := tx.Commit().Error; err != nil {
 		return dto.OrderResponse{}, err
+	}
+
+	// send notification
+	if req.IsCheckout {
+		o.notifService.SendOrderEmail(
+			user.Email,
+			"Order Confirmation",
+			"Your order "+newOrder.ID.String()+" has been successfully placed.",
+		)
 	}
 
 	return dto.OrderResponse{
@@ -261,6 +273,15 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 		return dto.OrderResponse{}, err
 	}
 
+	// send notification
+	if req.IsCheckout {
+		o.notifService.SendOrderEmail(
+			user.Email,
+			"Order Confirmation",
+			"Your order "+order.ID.String()+" has been successfully placed.",
+		)
+	}
+
 	return dto.OrderResponse{
 		ID:         order.ID.String(),
 		UserID:     order.UserID.String(),
@@ -364,6 +385,13 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 		}
 	}
 
+	// Send Notification
+	s.notifService.SendOrderEmail(
+		user.Email, 
+		"Order has been cancelled",
+		"Order with ID "+orderID+" has been cancelled",
+	)
+
 	return dto.OrderResponse{
 		ID:         order.ID.String(),
 		UserID:     order.UserID.String(),
@@ -433,6 +461,13 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 			SubTotal:    item.SubTotal,
 		}
 	}
+
+	// Send Notification
+	s.notifService.SendOrderEmail(
+		user.Email, 
+		"Order has been confirmed",
+		"Order with ID "+orderID+" has been confirmed",
+	)
 
 	return dto.OrderResponse{
 		ID:         order.ID.String(),

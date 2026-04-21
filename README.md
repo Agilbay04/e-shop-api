@@ -39,6 +39,7 @@ e-shop-api/
 - **Store Management**: Create, update, delete, and activate/deactivate stores
 - **Product Management**: CRUD operations for products with categories
 - **Order Management**: Create, list, update, cancel, and confirm orders with order items
+- **Email Notifications**: Automatic email notifications for order events (create, update, cancel, confirm), implement goroutine to send emails
 - **Pagination**: Built-in pagination support for list endpoints
 - **Custom Validation**: Request validation with custom validators
 - **Transaction Support**: Database transactions for data integrity
@@ -66,14 +67,26 @@ cp .env.example .env
 Edit `.env` with your database and application settings:
 
 ```env
-DB_HOST=localhost
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_NAME=e_shop_db
-DB_PORT=5432
-SERVER_PORT=8001
+# APP
+SERVER_PORT=<server_port>
 APP_ENV=development
-JWT_SECRET_KEY=your_jwt_secret
+
+# DB
+DB_HOST=localhost
+DB_USER=<db_username>
+DB_PASSWORD=<db_password>
+DB_NAME=<db_name>
+DB_PORT=<db_port>
+
+# JWT
+JWT_SECRET_KEY=<jwt_secret_key>
+
+# SMTP EMAIL
+SMTP_HOST=localhost
+SMTP_PORT=1025
+SMTP_SENDER_NAME="E-Shop Admin"
+SMTP_AUTH_EMAIL=<auth_email>
+SMTP_AUTH_PASSWORD=<auth_password>
 ```
 
 ### 3. Start Database
