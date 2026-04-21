@@ -203,12 +203,12 @@ Authorization: Bearer <token>
 Response:
 ```json
 {
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total_items": 50,
-    "total_pages": 5
+  "items": [...],
+  "meta": {
+    "current_page": 1,
+    "total_page": 5,
+    "total_data": 50,
+    "limit": 10
   }
 }
 ```
