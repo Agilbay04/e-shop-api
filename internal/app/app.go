@@ -25,7 +25,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
     }
 
 	// Middleware
-	NewMiddlewareRegistry(r)
+	middlewareRegistry := NewMiddlewareRegistry(r)
 
 	// Register repository
 	repoRegistry := NewRepositoryRegistry(db)
@@ -37,7 +37,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	handlerRegistry := NewHandlerRegistry(svcRegistry)
 
 	// Register routes
-	RegisterRoutes(r, handlerRegistry)
+	RegisterRoutes(r, handlerRegistry, middlewareRegistry)
 
 	return r
 }

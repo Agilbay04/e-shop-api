@@ -1,17 +1,11 @@
 package app
 
-import (
-	"e-shop-api/internal/middleware"
+import "github.com/gin-gonic/gin"
 
-	"github.com/gin-gonic/gin"
-)
-
-func RegisterRoutes(r *gin.Engine, h *HandlerRegistry) {
+func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry) {
 	api := r.Group("/api/v1")
 	{
-		/**
-		PUBLIC ROUTES
-		*/
+		/** PUBLIC ROUTES */
 		// Auth Routes
 		auth := api.Group("/auth")
 		{
@@ -19,11 +13,9 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry) {
 			auth.POST("/login", h.AuthHandler.Login)
 		}
 
-		/**
-		PROTECTED ROUTES
-		*/
+		/** PROTECTED ROUTES */
 		protected := api.Group("/")
-		protected.Use(middleware.AuthMiddleware())
+		protected.Use(m.Auth)
 		{
 			// Store Routes
 			protected.GET("/stores", h.StoreHandler.GetStores)
