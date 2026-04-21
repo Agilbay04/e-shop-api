@@ -38,7 +38,7 @@ e-shop-api/
 - **User Authentication**: Register and login with JWT-based authentication
 - **Store Management**: Create, update, delete, and activate/deactivate stores
 - **Product Management**: CRUD operations for products with categories
-- **Order Management**: Create and manage orders with order items
+- **Order Management**: Create, list, update, cancel, and confirm orders with order items
 - **Pagination**: Built-in pagination support for list endpoints
 - **Custom Validation**: Request validation with custom validators
 - **Transaction Support**: Database transactions for data integrity
@@ -129,6 +129,10 @@ The server will start on `http://localhost:8001` (or the port specified in `.env
 | PATCH  | /api/v1/products/:id          | Delete product          |
 | PATCH  | /api/v1/products/activate     | Activate/deactivate product|
 | POST   | /api/v1/orders                | Create order            |
+| GET    | /api/v1/orders                | List orders (paginated)|
+| PUT    | /api/v1/orders/:id            | Update order            |
+| PATCH  | /api/v1/orders/:id/cancel     | Cancel order           |
+| PATCH  | /api/v1/orders/:id/confirm    | Confirm order          |
 
 ## Request/Response Examples
 

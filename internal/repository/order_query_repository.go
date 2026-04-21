@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
+	"e-shop-api/internal/pkg/util"
 
 	"gorm.io/gorm"
 )
@@ -9,6 +11,7 @@ import (
 type OrderQueryRepository interface {
 	CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []model.OrderStatus) (int64, error)
 	FindByIDWithLock(tx *gorm.DB, orderID string) (*model.Order, error)
+	FindAllPagination(userID string, storeID string, statuses []model.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error)
 }
 
 type orderQueryRepository struct {
@@ -39,17 +42,78 @@ func (r *orderQueryRepository) CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB,
 }
 
 func (r *orderQueryRepository) FindByIDWithLock(tx *gorm.DB, orderID string) (*model.Order, error) {
-    var order model.Order
-    err := tx.Set("gorm:query_option", "FOR UPDATE").
+	var order model.Order
+	err := tx.Set("gorm:query_option", "FOR UPDATE").
 		Preload("User").
-        Preload("OrderItems").
+		Preload("OrderItems").
 		Preload("OrderItems.Product").
 		Preload("OrderItems.Product.Store").
-        First(&order, "id = ?", orderID).Error
-    
-    if err != nil {
-        return nil, err
-    }
-    return &order, nil
+		First(&order, "id = ?", orderID).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &order, nil
 }
 
+func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, statuses []model.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error) {
+	var orders []model.Order
+	var total int64
+
+	query := r.db.Model(&model.Order{})
+
+	if userID != "" {
+		query = query.Where("user_id = ?", userID)
+	}
+
+	if storeID != "" {
+		query = query.Joins("JOIN order_items ON order_items.order_id = orders.id").
+			Where("order_items.store_id = ?", storeID)
+	}
+
+	if len(statuses) > 0 {
+		query = query.Where("status IN ?", statuses)
+	}
+
+	query.Count(&total)
+
+	err := query.Scopes(util.Paginate(req.Page, req.Limit)).
+		Order(req.SortBy + " " + req.OrderBy).
+		Preload("User").
+		Preload("OrderItems").
+		Preload("OrderItems.Product").
+		Preload("OrderItems.Product.Store").
+		Find(&orders).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	responses := make([]dto.OrderResponse, len(orders))
+	for i, order := range orders {
+		orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
+		for j, item := range order.OrderItems {
+			orderItems[j] = dto.OrderItemResponse{
+				StoreID:     item.StoreID.String(),
+				StoreName:   item.Product.Store.Name,
+				ProductID:   item.ProductID.String(),
+				ProductName: item.Product.Name,
+				Quantity:    item.Quantity,
+				Unit:        item.Product.Unit,
+				Price:       item.Price,
+				SubTotal:    item.SubTotal,
+			}
+		}
+
+		responses[i] = dto.OrderResponse{
+			ID:         order.ID.String(),
+			UserID:     order.UserID.String(),
+			Username:   order.User.Username,
+			GrandTotal: order.GrandTotal,
+			Status:     order.Status,
+			OrderItems: orderItems,
+		}
+	}
+
+	return responses, total, nil
+}
