@@ -14,6 +14,7 @@ import (
 type AuthService interface {
 	Register(req dto.RegisterRequest) (dto.UserResponse, error)
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
+	Profile(user dto.CurrentUser) (dto.UserResponse, error)
 }
 
 type authService struct {
@@ -67,7 +68,7 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 	}
 
 	return dto.UserResponse{
-		ID:       newUser.ID,
+		ID:       newUser.ID.String(),
 		Username: newUser.Username,
 		Email:    newUser.Email,
 		Role:     newUser.Role,
@@ -93,10 +94,19 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	return dto.LoginResponse{
 		Token: token,
 		User: dto.UserResponse{
-			ID:       u.ID,
+			ID:       u.ID.String(),
 			Username: u.Username,
 			Email:    u.Email,
 			Role:     u.Role,
 		},
+	}, nil
+}
+
+func (s *authService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {
+	return dto.UserResponse{
+		ID:       user.ID.String(),
+		Username: user.Username,
+		Email:    user.Email,
+		Role:     user.Role,
 	}, nil
 }

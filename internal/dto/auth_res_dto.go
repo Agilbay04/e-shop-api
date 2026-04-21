@@ -1,10 +1,6 @@
 package dto
 
-import (
-	"e-shop-api/internal/model"
-
-	"github.com/google/uuid"
-)
+import "e-shop-api/internal/model"
 
 type LoginResponse struct {
 	Token string      	`json:"token,omitempty"`
@@ -12,7 +8,7 @@ type LoginResponse struct {
 }
 
 type UserResponse struct {
-	ID       uuid.UUID 			`json:"id"`
+	ID       string			`json:"id"`
 	Username string    			`json:"username"`
 	Email    string    			`json:"email"`
 	Role     model.UserRole    `json:"role"`

@@ -47,3 +47,15 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 
 	Ok(ctx, res, "Login success")
 }
+
+func (h *AuthHandler) Profile(ctx *gin.Context) {
+	user := util.GetCurrentUser(ctx)
+
+	res, err := h.authService.Profile(user)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	Ok(ctx, res, "Success get profile")
+}

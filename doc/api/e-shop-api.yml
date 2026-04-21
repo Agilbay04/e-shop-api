@@ -1,0 +1,514 @@
+opencollection: 1.0.0
+info:
+  name: e-shop-api (training golang)
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ''
+      port: ''
+      auth:
+        username: ''
+        password: ''
+      bypassProxy: ''
+  environments:
+    - name: Local Env
+      variables:
+        - name: base_url
+          value: http://localhost:8001
+        - name: bearer_token
+          secret: true
+items:
+  - info:
+      name: auth
+      type: folder
+      seq: 1
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Login
+          type: http
+          seq: 1
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/auth/login'
+          body:
+            type: json
+            data: |-
+              {
+                "email": "pragmanta@gmail.com",
+                "password": "rahasia123"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Register
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/auth/register'
+          body:
+            type: json
+            data: |-
+              {
+                "username": "pragmanta",
+                "email": "pragmanta@gmail.com",
+                "password": "rahasia123",
+                "role": "buyer"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Profile
+          type: http
+          seq: 3
+        http:
+          method: GET
+          url: '{{base_url}}/api/v1/auth/profile'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: product
+      type: folder
+      seq: 3
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Product - Create
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/products'
+          body:
+            type: json
+            data: |-
+              {
+                "name": "Cat",
+                "description": "Cat kualitas bagus",
+                "price": 80000,
+                "stock": 500,
+                "unit": "bucket"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Get All/By ID
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: '{{base_url}}/api/v1/products?page=1&limit=10&sort_by=created_at&order_by=desc&search='
+          params:
+            - name: page
+              value: '1'
+              type: query
+            - name: limit
+              value: '10'
+              type: query
+            - name: sort_by
+              value: created_at
+              type: query
+            - name: order_by
+              value: desc
+              type: query
+            - name: search
+              value: ''
+              type: query
+            - name: store_id
+              value: 59e3e777-7050-4b69-b7ee-da488d54bd61
+              type: query
+              disabled: true
+            - name: id
+              value: 703650f9-5d99-4f75-9d27-40914fd84150
+              type: query
+              disabled: true
+            - name: min_price
+              value: ''
+              type: query
+              disabled: true
+            - name: max_price
+              value: ''
+              type: query
+              disabled: true
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Update
+          type: http
+          seq: 3
+        http:
+          method: PUT
+          url: '{{base_url}}/api/v1/products/:id'
+          params:
+            - name: id
+              value: a5b8f242-44c6-4c93-8127-7ed78327861e
+              type: path
+          body:
+            type: json
+            data: |-
+              {
+                "name": "Genteng Merah",
+                "description": "Genteng kualitas bagus",
+                "price": 11500,
+                "stock": 10000,
+                "unit": "item"
+                //"is_active": true
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Delete
+          type: http
+          seq: 4
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/products/:id'
+          params:
+            - name: id
+              value: a5b8f242-44c6-4c93-8127-7ed78327861e
+              type: path
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Activate
+          type: http
+          seq: 5
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/products/activate'
+          body:
+            type: json
+            data: |-
+              {
+                "id": "a5b8f242-44c6-4c93-8127-7ed78327861e",
+                "is_active": true
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: store
+      type: folder
+      seq: 2
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Store - Create
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/stores'
+          body:
+            type: json
+            data: |-
+              {
+                "name": "Material Store Oke Mantap",
+                "description": "Toko yang menyediakan bahan bangunan"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Store - Update
+          type: http
+          seq: 3
+        http:
+          method: PUT
+          url: '{{base_url}}/api/v1/stores/:id'
+          params:
+            - name: id
+              value: 59e3e777-7050-4b69-b7ee-da488d54bd61
+              type: path
+          body:
+            type: json
+            data: |-
+              {
+                "name": "Toko Rahmat Bangunan",
+                "description": "Toko yang menyediakan bahan bangunan",
+                "is_active": true
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Store - Get All/By ID
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: '{{base_url}}/api/v1/stores?page=1&limit=10&sort_by=created_at&order_by=desc&search='
+          params:
+            - name: page
+              value: '1'
+              type: query
+            - name: limit
+              value: '10'
+              type: query
+            - name: sort_by
+              value: created_at
+              type: query
+            - name: order_by
+              value: desc
+              type: query
+            - name: search
+              value: ''
+              type: query
+            - name: id
+              value: 703650f9-5d99-4f75-9d27-40914fd84150
+              type: query
+              disabled: true
+            - name: min_price
+              value: ''
+              type: query
+              disabled: true
+            - name: max_price
+              value: ''
+              type: query
+              disabled: true
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Store - Activate
+          type: http
+          seq: 4
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/stores/activate'
+          body:
+            type: json
+            data: |-
+              {
+                "id": "59e3e777-7050-4b69-b7ee-da488d54bd61",
+                "is_active": true
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Store - Delete
+          type: http
+          seq: 5
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/stores/:id'
+          params:
+            - name: id
+              value: 59e3e777-7050-4b69-b7ee-da488d54bd61
+              type: path
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: order
+      type: folder
+      seq: 4
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Order - Create
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/orders'
+          body:
+            type: json
+            data: |-
+              {
+                "is_checkout": true,
+                "order_items": [
+                  {
+                    "product_id": "a5b8f242-44c6-4c93-8127-7ed78327861e",
+                    "quantity": 100
+                  },
+                  {
+                    "product_id": "703650f9-5d99-4f75-9d27-40914fd84150",
+                    "quantity": 100
+                  }
+                ]
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Order - Cancel
+          type: http
+          seq: 4
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/orders/:id/cancel'
+          params:
+            - name: id
+              value: 37833da0-bba7-418e-b9d6-c93a24793a90
+              type: path
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Order - Confirm
+          type: http
+          seq: 5
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/orders/:id/confirm'
+          params:
+            - name: id
+              value: b4873f68-1402-4d4d-b16f-68b1f76907b6
+              type: path
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Order - Update
+          type: http
+          seq: 3
+        http:
+          method: PUT
+          url: '{{base_url}}/api/v1/orders/:id'
+          params:
+            - name: id
+              value: b4873f68-1402-4d4d-b16f-68b1f76907b6
+              type: path
+          body:
+            type: json
+            data: |-
+              {
+                "is_checkout": true,
+                "order_items": [
+                  {
+                    "product_id": "a5b8f242-44c6-4c93-8127-7ed78327861e",
+                    "quantity": 50
+                  },
+                  {
+                    "product_id": "703650f9-5d99-4f75-9d27-40914fd84150",
+                    "quantity": 25
+                  }
+                ]
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Order - Get All/By ID copy
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: '{{base_url}}/api/v1/orders?page=1&limit=10&sort_by=created_at&order_by=desc&search='
+          params:
+            - name: page
+              value: '1'
+              type: query
+            - name: limit
+              value: '10'
+              type: query
+            - name: sort_by
+              value: created_at
+              type: query
+            - name: order_by
+              value: desc
+              type: query
+            - name: search
+              value: ''
+              type: query
+            - name: store_id
+              value: 59e3e777-7050-4b69-b7ee-da488d54bd61
+              type: query
+              disabled: true
+            - name: id
+              value: 703650f9-5d99-4f75-9d27-40914fd84150
+              type: query
+              disabled: true
+            - name: min_price
+              value: ''
+              type: query
+              disabled: true
+            - name: max_price
+              value: ''
+              type: query
+              disabled: true
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+request:
+  auth:
+    type: bearer
+    token: '{{bearer_token}}'
+bundled: true
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git
+    exportedAt: '2026-04-21T10:34:28.745Z'
+    exportedUsing: Bruno

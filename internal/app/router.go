@@ -6,7 +6,7 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry) {
 	api := r.Group("/api/v1")
 	{
 		// Auth Routes (Public)
-		registerAuthRoutes(api, h)
+		registerAuthRoutes(api, h, m)
 
 		// Protected Routes (Common Auth)
 		protected := api.Group("/")
@@ -20,11 +20,18 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry) {
 }
 
 // Sub Routes
-func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry) {
+func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry) {
 	auth := api.Group("/auth")
 	{
 		auth.POST("/register", h.AuthHandler.Register)
 		auth.POST("/login", h.AuthHandler.Login)
+
+		// Protected Routes (Common Auth)
+		protected := auth.Group("/")
+		protected.Use(m.Auth)
+		{
+			protected.GET("/profile", h.AuthHandler.Profile)
+		}
 	}
 }
 
