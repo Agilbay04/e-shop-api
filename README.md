@@ -15,19 +15,19 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 ```bash
 e-shop-api/
 ├── cmd/
-│   ├── api/          # Main API server
-│   ├── migrate/     # Database migration
-│   └── seed/        # Data seeding
+│   ├── api/            # Main API server
+│   ├── migrate/        # Database migration
+│   └── seed/           # Data seeding
 ├── internal/
-│   ├── app/         # Application setup (router, DI registries)
-│   ├── config/      # Configuration (database, migration, seeder)
-│   ├── dto/         # Data Transfer Objects
-│   ├── handler/     # HTTP handlers
-│   ├── middleware/  # Middleware (auth, response)
-│   ├── model/       # Database models
-│   ├── repository/  # Database repositories
-│   ├── service/     # Business logic services
-│   └── pkg/util/    # Utility packages (JWT, exceptions)
+│   ├── app/            # Application setup (router, DI registries)
+│   ├── config/         # Configuration (database, migration, seeder)
+│   ├── dto/            # Data Transfer Objects
+│   ├── handler/        # HTTP handlers
+│   ├── middleware/     # Middleware (auth, response)
+│   ├── model/          # Database models
+│   ├── repository/     # Database repositories
+│   ├── service/        # Business logic services
+│   └── pkg/util/       # Utility packages (JWT, exceptions)
 ├── docker-compose.yml
 ├── .env.example
 └── go.mod
