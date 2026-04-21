@@ -8,6 +8,7 @@ import (
 
 type OrderQueryRepository interface {
 	CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []model.OrderStatus) (int64, error)
+	FindByIDWithLock(tx *gorm.DB, orderID string) (*model.Order, error)
 }
 
 type orderQueryRepository struct {
@@ -36,3 +37,19 @@ func (r *orderQueryRepository) CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB,
 	err := query.Count(&count).Error
 	return count, err
 }
+
+func (r *orderQueryRepository) FindByIDWithLock(tx *gorm.DB, orderID string) (*model.Order, error) {
+    var order model.Order
+    err := tx.Set("gorm:query_option", "FOR UPDATE").
+		Preload("User").
+        Preload("OrderItems").
+		Preload("OrderItems.Product").
+		Preload("OrderItems.Product.Store").
+        First(&order, "id = ?", orderID).Error
+    
+    if err != nil {
+        return nil, err
+    }
+    return &order, nil
+}
+

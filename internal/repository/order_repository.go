@@ -9,6 +9,8 @@ import (
 type OrderRepository interface {
 	CreateOrder(tx *gorm.DB, order *model.Order) error
 	CreateOrderItems(tx *gorm.DB, items []model.OrderItem) error
+	DeleteOrderItems(tx *gorm.DB, orderID string) error
+	UpdateOrder(tx *gorm.DB, order *model.Order) error
 }
 
 type orderRepository struct {
@@ -33,4 +35,18 @@ func (r *orderRepository) CreateOrderItems(tx *gorm.DB, items []model.OrderItem)
 	}
 	
 	return r.db.Create(&items).Error
+}
+
+func (r *orderRepository) DeleteOrderItems(tx *gorm.DB, orderID string) error {
+	if tx != nil {
+		return tx.Where("order_id = ?", orderID).Delete(&model.OrderItem{}).Error
+	}
+	return r.db.Where("order_id = ?", orderID).Delete(&model.OrderItem{}).Error
+}
+
+func (r *orderRepository) UpdateOrder(tx *gorm.DB, order *model.Order) error {
+	if tx != nil {
+		return tx.Save(order).Error
+	}
+	return r.db.Save(order).Error
 }

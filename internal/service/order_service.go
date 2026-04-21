@@ -5,6 +5,7 @@ import (
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
+	"slices"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -12,11 +13,15 @@ import (
 
 type OrderService interface {
 	CreateOrder(req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error)
+    UpdateOrder(orderId string, req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error)
+    CancelOrder(orderId string, user dto.CurrentUser) (dto.OrderResponse, error)
+    ConfirmOrder(orderId string, user dto.CurrentUser) (dto.OrderResponse, error)
 }
 
 type orderService struct {
 	db *gorm.DB
 	orderRepo repository.OrderRepository
+    orderQueryRepo repository.OrderQueryRepository
 	productRepo repository.ProductRepository
 	productQueryRepo repository.ProductQueryRepository
 }
@@ -24,12 +29,14 @@ type orderService struct {
 func NewOrderService(
 	db *gorm.DB, 
 	orderRepo repository.OrderRepository, 
+    orderQueryRepo repository.OrderQueryRepository,
 	productRepo repository.ProductRepository,
 	productQueryRepo repository.ProductQueryRepository,
 ) OrderService {
 	return &orderService{
 		db,
 		orderRepo,
+        orderQueryRepo,
 		productRepo,
 		productQueryRepo,
 	}
@@ -143,9 +150,11 @@ func (o *orderService) prepareOrderData(
         })
 
         // Update stock product
-		newStock := product.Stock - reqItem.Quantity
-        if err := o.productRepo.UpdateStock(tx, product.ID.String(), newStock); err != nil {
-            return 0, nil, nil, err
+        if req.IsCheckout {
+            newStock := product.Stock - reqItem.Quantity
+            if err := o.productRepo.UpdateStock(tx, product.ID.String(), newStock); err != nil {
+                return 0, nil, nil, err
+            }
         }
     }
     return total, items, responses, nil
@@ -179,5 +188,233 @@ func (o *orderService) saveOrderItems(
         items[i].OrderID = orderID
     }
     return o.orderRepo.CreateOrderItems(tx, items)
+}
+
+func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error) {
+    // Set Status
+    if req.IsCheckout {
+        req.Status = model.Pending
+    } else {
+        req.Status = model.Draft
+    }
+
+    // Begin Transaction
+    tx := o.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // Get Order preload OrderItems with UPDATE locking
+    order, err := o.orderQueryRepo.FindByIDWithLock(tx, orderID)
+    if err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.NotFoundException("Order not found")
+    }
+
+    // Validate only admin or order creator can update order
+    if user.Role != model.Admin && order.UserID != user.ID {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.ForbiddenException("You are not authorized to update this order")
+    }
+
+    // Validate only draft or pending order can be updated
+    validStatus := []model.OrderStatus{model.Draft}
+    if !slices.Contains(validStatus, order.Status) {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.BadRequestException("Only "+string(model.Draft)+" order can be updated", nil)
+    }
+
+    // Update Order
+    total, items, responses, err := o.prepareOrderData(tx, req, user)
+    if err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, err
+    }
+    order.GrandTotal = total
+    order.Status = req.Status
+    if err := o.orderRepo.UpdateOrder(tx, order); err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, err
+    }
+
+    // Update OrderItems
+    if err := o.orderRepo.DeleteOrderItems(tx, orderID); err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, err
+    }
+    if err := o.saveOrderItems(tx, order.ID, items); err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, err
+    }
+
+    // Commit Transaction
+    if err := tx.Commit().Error; err != nil {
+        return dto.OrderResponse{}, err
+    }
+
+    return dto.OrderResponse{
+        ID:          order.ID.String(),
+        UserID:      order.UserID.String(),
+        Username:    order.User.Username,
+        GrandTotal:  order.GrandTotal,
+        Status:      order.Status,
+        OrderItems:  responses,
+    }, nil
+}
+
+func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.OrderResponse, error) {
+    // Begin Transaction
+    tx := s.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // Get Order preload OrderItems with UPDATE locking
+    order, err := s.orderQueryRepo.FindByIDWithLock(tx, orderID)
+    if err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.NotFoundException("Order not found")
+    }
+
+    // Validate only admin or order creator can cancel order
+    if user.Role != model.Admin && order.UserID != user.ID {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.ForbiddenException("You are not authorized to cancel this order")
+    }
+
+    // Validate only draft or pending order can be cancelled
+    validStatus := []model.OrderStatus{model.Draft, model.Pending}
+    if !slices.Contains(validStatus, order.Status) {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.BadRequestException(
+                "Only "+string(model.Draft)+" and "+string(model.Pending)+" orders can be cancelled. Current status: "+string(order.Status), 
+            nil)
+    }
+
+    // Update Order Status
+    order.Status = model.Cancelled
+    order.UpdatedBy = user.ID
+    if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, err
+    }
+
+    // Rollback Stock for each OrderItem
+    if order.Status != model.Draft {
+        for _, item := range order.OrderItems {
+            if err := s.productRepo.AddStock(tx, item.ProductID.String(), item.Quantity); err != nil {
+                tx.Rollback()
+                return dto.OrderResponse{}, err
+            }
+        }
+    }
+
+    // Commit Transaction
+    if err := tx.Commit().Error; err != nil {
+        return dto.OrderResponse{}, err
+    }
+
+    orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
+    for i, item := range order.OrderItems {
+        orderItems[i] = dto.OrderItemResponse{
+            StoreID:    item.StoreID.String(),
+            StoreName:  item.Store.Name,
+            ProductID:  item.ProductID.String(),
+            ProductName: item.Product.Name,
+            Quantity:   item.Quantity,
+            Price:      item.Price,
+            Unit:       item.Product.Unit,
+            SubTotal:   item.SubTotal,
+        }
+    }
+
+    return dto.OrderResponse{
+        ID:          order.ID.String(),
+        UserID:      order.UserID.String(),
+        Username:    order.User.Username,
+        GrandTotal:  order.GrandTotal,
+        Status:      order.Status,
+        OrderItems:  orderItems,
+    }, nil
+}
+
+func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.OrderResponse, error) {
+    // Begin Transaction
+    tx := s.db.Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    // Get Order preload OrderItems with UPDATE locking
+    order, err := s.orderQueryRepo.FindByIDWithLock(tx, orderID)
+    if err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.NotFoundException("Order not found")
+    }
+
+    // Validate only admin or order creator can confirm order
+    if user.Role != model.Admin && order.UserID != user.ID {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.ForbiddenException("You are not authorized to cancel this order")
+    }
+
+     // Validate only pending order can be confirmed
+    if order.Status != model.Pending {
+        tx.Rollback()
+        return dto.OrderResponse{}, 
+            util.BadRequestException(
+                "Only "+string(model.Pending)+" orders can be confirmed. Current status: "+string(order.Status), 
+            nil)
+    }
+
+    // Update Order Status
+    order.Status = model.Paid
+    order.UpdatedBy = user.ID
+    if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
+        tx.Rollback()
+        return dto.OrderResponse{}, err
+    }
+
+    // Commit Transaction
+    if err := tx.Commit().Error; err != nil {
+        return dto.OrderResponse{}, err
+    }
+
+    orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
+    for i, item := range order.OrderItems {
+        orderItems[i] = dto.OrderItemResponse{
+            StoreID:    item.StoreID.String(),
+            StoreName:  item.Store.Name,
+            ProductID:  item.ProductID.String(),
+            ProductName: item.Product.Name,
+            Quantity:   item.Quantity,
+            Price:      item.Price,
+            Unit:       item.Product.Unit,
+            SubTotal:   item.SubTotal,
+        }
+    }
+
+    return dto.OrderResponse{
+        ID:          order.ID.String(),
+        UserID:      order.UserID.String(),
+        Username:    order.User.Username,
+        GrandTotal:  order.GrandTotal,
+        Status:      order.Status,
+        OrderItems:  orderItems,
+    }, nil
 }
 

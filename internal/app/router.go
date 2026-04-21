@@ -31,16 +31,19 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry) {
 			protected.PUT("/stores/:id", h.StoreHandler.UpdateStore)
 			protected.PATCH("/stores/:id", h.StoreHandler.DeleteStore)
 			protected.PATCH("/stores/activate", h.StoreHandler.ActivateStore)
-
+			
 			// Product Routes
 			protected.GET("/products", h.ProductHandler.Index)
 			protected.POST("/products", h.ProductHandler.CreateProduct)
 			protected.PUT("/products/:id", h.ProductHandler.UpdateProduct)
 			protected.PATCH("/products/:id", h.ProductHandler.DeleteProduct)
 			protected.PATCH("/products/activate", h.ProductHandler.ActivateProduct)
-
+			
 			// Order Routes
 			protected.POST("/orders", h.OrderHandler.CreateOrder)
+			protected.PUT("/orders/:id", h.OrderHandler.UpdateOrder)
+			protected.PATCH("/orders/:id/cancel", h.OrderHandler.CancelOrder)
+			protected.PATCH("/orders/:id/confirm", h.OrderHandler.ConfirmOrder)
 		}
 	}
 }
