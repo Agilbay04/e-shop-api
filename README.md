@@ -36,11 +36,12 @@ e-shop-api/
 ## Features
 
 - **User Authentication**: Register and login with JWT-based authentication
-- **Store Management**: Create and manage stores
+- **Store Management**: Create, update, delete, and activate/deactivate stores
 - **Product Management**: CRUD operations for products with categories
 - **Order Management**: Create and manage orders with order items
 - **Pagination**: Built-in pagination support for list endpoints
 - **Custom Validation**: Request validation with custom validators
+- **Transaction Support**: Database transactions for data integrity
 
 ## Getting Started
 
@@ -115,18 +116,19 @@ The server will start on `http://localhost:8001` (or the port specified in `.env
 
 ### Protected Routes (Requires JWT)
 
-| Method | Endpoint                    | Description              |
-|--------|-----------------------------|--------------------------|
-| POST   | /api/v1/stores              | Create store            |
-| GET    | /api/v1/stores              | List stores             |
-| POST   | /api/v1/products            | Create product          |
-| GET    | /api/v1/products            | List products (paginated)|
-| GET    | /api/v1/products/:id        | Get product by ID       |
-| PUT    | /api/v1/products/:id        | Update product          |
-| DELETE | /api/v1/products/:id        | Delete product          |
-| POST   | /api/v1/orders              | Create order            |
-| GET    | /api/v1/orders              | List orders (paginated) |
-| GET    | /api/v1/orders/:id          | Get order by ID         |
+| Method | Endpoint                      | Description              |
+|--------|-------------------------------|--------------------------|
+| POST   | /api/v1/stores                | Create store            |
+| GET    | /api/v1/stores                | List stores (paginated)|
+| PUT    | /api/v1/stores/:id            | Update store           |
+| PATCH  | /api/v1/stores/:id            | Delete store           |
+| PATCH  | /api/v1/stores/activate       | Activate/deactivate store|
+| POST   | /api/v1/products              | Create product          |
+| GET    | /api/v1/products              | List products (paginated)|
+| PUT    | /api/v1/products/:id          | Update product          |
+| PATCH  | /api/v1/products/:id          | Delete product          |
+| PATCH  | /api/v1/products/activate     | Activate/deactivate product|
+| POST   | /api/v1/orders                | Create order            |
 
 ## Request/Response Examples
 
