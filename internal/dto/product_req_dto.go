@@ -28,5 +28,4 @@ type UpdateProductRequest struct {
 	Price       *int    `json:"price" binding:"omitempty,gt=0"`
 	Stock       *int    `json:"stock" binding:"omitempty,min=0"`
 	Unit        *string `json:"unit"`
-	IsActive    *bool   `json:"is_active"`
 }

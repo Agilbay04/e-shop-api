@@ -172,9 +172,6 @@ func (s *productService) UpdateProduct(
 	if req.Unit != nil {
 		product.Unit = *req.Unit
 	}
-	if req.IsActive != nil {
-		product.IsActive = *req.IsActive
-	}
 
 	product.UpdatedBy = user.ID
 

@@ -6,13 +6,14 @@ import (
 )
 
 type RepositoryRegistry struct {
-	UserRepo         repository.UserRepository
-	UserQuery        repository.UserQueryRepository
-	StoreRepo        repository.StoreRepository
-	StoreQuery       repository.StoreQueryRepository
-	ProductRepo      repository.ProductRepository
-	ProductQuery     repository.ProductQueryRepository
-	OrderRepo        repository.OrderRepository
+	UserRepo     repository.UserRepository
+	UserQuery    repository.UserQueryRepository
+	StoreRepo    repository.StoreRepository
+	StoreQuery   repository.StoreQueryRepository
+	ProductRepo  repository.ProductRepository
+	ProductQuery repository.ProductQueryRepository
+	OrderRepo    repository.OrderRepository
+	OrderQuery   repository.OrderQueryRepository
 }
 
 func NewRepositoryRegistry(db *gorm.DB) *RepositoryRegistry {
@@ -24,5 +25,6 @@ func NewRepositoryRegistry(db *gorm.DB) *RepositoryRegistry {
 		ProductRepo:  repository.NewProductRepository(db),
 		ProductQuery: repository.NewProductQueryRepository(db),
 		OrderRepo:    repository.NewOrderRepository(db),
+		OrderQuery:   repository.NewOrderQueryRepository(db),
 	}
 }
