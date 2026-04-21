@@ -94,6 +94,12 @@ SMTP_PORT=1025
 SMTP_SENDER_NAME="E-Shop Admin"
 SMTP_AUTH_EMAIL=<auth_email>
 SMTP_AUTH_PASSWORD=<auth_password>
+
+# PROXIES
+TRUSTED_PROXIES=127.0.0.1
+
+# CORS
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:8001,http://127.0.0.1:5500
 ```
 
 ### 3. Start Database
