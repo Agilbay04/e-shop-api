@@ -18,6 +18,9 @@ e-shop-api/
 │   ├── api/            # Main API server
 │   ├── migrate/        # Database migration
 │   └── seed/           # Data seeding
+├── doc/
+│   ├── api/            # API documentation (HTML, YAML, PNG)
+│   └── erd/            # Database documentation (DBML, SQL, ERD PNG)
 ├── internal/
 │   ├── app/            # Application setup (router, DI registries)
 │   ├── config/         # Configuration (database, migration, seeder)
@@ -242,6 +245,28 @@ Content-Type: application/json
   ]
 }
 ```
+
+## Documentation
+
+### API Documentation
+The API documentation is available as an interactive HTML collection in `doc/api/e-shop-api-documentation.html`.
+
+**How to view:**
+1. Install the **Live Server** extension in VS Code (by Ritwick Dey)
+2. Right-click `doc/api/e-shop-api-documentation.html`
+3. Select "Open with Live Server"
+
+The documentation will open in your default browser, allowing you to test all API endpoints with the configured environment (base URL: `http://localhost:8001`).
+
+### Database Schema (DBML)
+The database schema is defined in `doc/erd/e_shop_db.dbml` using DBML (Database Markup Language).
+
+**How to view:**
+1. Install a DBML viewer extension in VS Code (e.g., **DBML** by mohsen1)
+2. Open `doc/erd/e_shop_db.dbml` to see an interactive ERD diagram
+3. Alternatively, view the pre-generated ERD image at `doc/erd/e_shop_db_erd.png`
+
+The SQL schema export is also available at `doc/erd/e_shop_db.sql`.
 
 ## License
 
