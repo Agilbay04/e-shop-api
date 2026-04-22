@@ -6,7 +6,9 @@ import (
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
 	"os"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -22,17 +24,20 @@ type authService struct {
 	db            *gorm.DB
 	userRepo      repository.UserRepository
 	userQueryRepo repository.UserQueryRepository
+	rdb           *redis.Client
 }
 
 func NewAuthService(
 	db *gorm.DB,
 	userRepo repository.UserRepository,
 	userQueryRepo repository.UserQueryRepository,
+	rdb *redis.Client,
 ) AuthService {
 	return &authService{
 		db,
 		userRepo,
 		userQueryRepo,
+		rdb,
 	}
 }
 
@@ -77,30 +82,46 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 }
 
 func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
-	u, err := s.userQueryRepo.FindByEmail(req.Email)
-	if err != nil {
-		return dto.LoginResponse{}, util.UnprocessableEntityException("User email " + req.Email + " is not registered")
-	}
+	// Define cache key
+    cacheKey := "user:email:" + req.Email
+    
+    // Try to get data from Redis
+    u, err := util.GetCache[*model.User](s.rdb, cacheKey)
+    
+    // If data not found in Redis
+    if err != nil {
+        // Get data from database
+        u, err = s.userQueryRepo.FindByEmail(req.Email)
+        if err != nil {
+            return dto.LoginResponse{}, util.UnprocessableEntityException("User email " + req.Email + " is not registered")
+        }
 
-	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
-	if err != nil {
-		return dto.LoginResponse{}, util.UnauthorizedException("Invalid email or password")
-	}
+        // Set data to Redis
+		ttl := util.GetEnvInt(os.Getenv("REDIS_CACHE_TTL"), 5)
+        _ = util.SetCache(s.rdb, cacheKey, u, time.Duration(ttl)*time.Minute)
+    }
 
-	token, err := util.GenerateToken(u.ID, u.Username, u.Email, u.Picture, u.Role)
-	if err != nil {
-		return dto.LoginResponse{}, util.UnauthorizedException("Token is invalid or expired")
-	}
+    // Validate password
+    err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
+    if err != nil {
+        return dto.LoginResponse{}, util.UnauthorizedException("Invalid email or password")
+    }
 
-	return dto.LoginResponse{
-		Token: token,
-		User: dto.UserResponse{
-			ID:       u.ID.String(),
-			Username: u.Username,
-			Email:    u.Email,
-			Role:     u.Role,
-		},
-	}, nil
+    // Generate token
+    token, err := util.GenerateToken(u.ID, u.Username, u.Email, u.Picture, u.Role)
+    if err != nil {
+        return dto.LoginResponse{}, util.UnauthorizedException("Token is invalid or expired")
+    }
+
+    return dto.LoginResponse{
+        Token: token,
+        User: dto.UserResponse{
+            ID:       u.ID.String(),
+            Username: u.Username,
+            Email:    u.Email,
+            Role:     u.Role,
+        },
+    }, nil
 }
 
 func (s *authService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {

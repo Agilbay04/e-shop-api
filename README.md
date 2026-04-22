@@ -11,7 +11,7 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 - **ORM**: GORM
 - **Migrations**: gormigrate
 - **Authentication**: JWT (golang-jwt/jwt)
-- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, bcrypt (via golang.org/x/crypto)
+- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, redis, bcrypt (via golang.org/x/crypto)
 
 ## Project Structure
 
@@ -146,6 +146,7 @@ This architecture provides:
 - **Response Formatting**: Custom response formatting
 - **Transaction Support**: Database transactions for data integrity
 - **Database Pooling**: Database connection pooling for improved performance
+- **Redis Caching**: Redis caching for improved performance
 
 ## Getting Started
 
@@ -156,6 +157,7 @@ This architecture provides:
 - Docker & Docker Compose (optional)
 - `air` for hot reloading (`go install github.com/air-verse/air@latest`)
 - `golangci-lint` for linting (`curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.4`)
+- `redis` for caching (`go get github.com/redis/go-redis/v9`)
 
 ### 1. Clone and Setup
 
@@ -203,6 +205,12 @@ TRUSTED_PROXIES=127.0.0.1
 
 # CORS
 CORS_ALLOWED_ORIGINS=http://127.0.0.1:8001,http://127.0.0.1:5500
+
+# REDIS
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_CACHE_TTL=5 #minutes
 ```
 
 ### 3. Start Database

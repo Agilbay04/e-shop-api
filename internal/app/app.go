@@ -1,6 +1,7 @@
 package app
 
 import (
+	"e-shop-api/internal/config"
 	"e-shop-api/internal/pkg/util"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,7 @@ import (
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
+	rdb := config.ConnectRedis()
 
 	// Register json tag name
 	util.RegisterJSONTagName()
@@ -20,7 +22,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	repoRegistry := NewRepositoryRegistry(db)
 
 	// Register service
-	svcRegistry := NewServiceRegistry(repoRegistry, db)
+	svcRegistry := NewServiceRegistry(repoRegistry, db, rdb)
 	
 	// Register handler
 	handlerRegistry := NewHandlerRegistry(svcRegistry)
