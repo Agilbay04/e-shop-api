@@ -9,7 +9,7 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 - **Database**: PostgreSQL with GORM
 - **Migrations**: gormigrate
 - **Authentication**: JWT (golang-jwt/jwt)
-- **Utilities**: godotenv, uuid, bcrypt (via golang.org/x/crypto)
+- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, bcrypt (via golang.org/x/crypto)
 
 ## Project Structure
 
@@ -38,7 +38,8 @@ e-shop-api/
 ├── .env.example        # Example environment file
 ├── docker-compose.yml  # Docker Compose file
 ├── go.mod              # Go module file
-└── go.sum              # Go module checksum file
+├── go.sum              # Go module checksum file
+└── Makefile            # Project Makefile
 ```
 
 ## Architecture
@@ -149,6 +150,8 @@ This architecture provides:
 - Go 1.25+
 - PostgreSQL 15+
 - Docker & Docker Compose (optional)
+- `air` for hot reloading (`go install github.com/air-verse/air@latest`)
+- `golangci-lint` for linting (`curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.4`)
 
 ### 1. Clone and Setup
 
@@ -208,28 +211,51 @@ Or use an existing PostgreSQL instance.
 Run pending migrations:
 
 ```bash
-go run cmd/migrate/main.go
+make migrate
 ```
 
 Generate a new migration for a model:
 
 ```bash
-go run cmd/gen/main.go <ModelName>
+make add-migrate name=<ModelName>
 ```
 
 ### 5. Seed Data (Optional)
 
 ```bash
-go run cmd/seed/main.go
+make seed
 ```
 
 ### 6. Run the Server
 
 ```bash
-go run cmd/api/main.go
+# Run the server
+make run
+
+# Run the server with hot reload
+make dev
 ```
 
 The server will start on `http://localhost:8001` (or the port specified in `.env`).
+> **Note:** Before using command `make dev` you need to install `air` with `go install github.com/air-verse/air@latest`, then run command `air init`, and update `.air.toml` file with your configuration.
+
+### 7. Linting (Run golangci-lint)
+
+```bash
+make lint
+```
+
+### 8. Tidy (Cleaning and verifying go.mod and go.sum)
+
+```bash
+make tidy
+```
+
+### 9. Clean (Delete binary and temp files)
+
+```bash
+make clean
+```
 
 ## API Endpoints
 
