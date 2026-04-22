@@ -4,7 +4,6 @@ import (
 	"e-shop-api/internal/model"
 	"errors"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -22,10 +21,7 @@ type CustomClaims struct {
 
 func GenerateToken(id uuid.UUID, username, email, picture string, role model.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl, err := strconv.Atoi(os.Getenv("JWT_TTL"))
-	if err != nil {
-		ttl = 3600
-	} 
+	ttl := GetEnvInt(os.Getenv("JWT_TTL"), 3600)
 
 	claims := CustomClaims{
 		ID:       id,
