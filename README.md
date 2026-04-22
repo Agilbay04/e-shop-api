@@ -7,6 +7,7 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 - **Language**: Go 1.25
 - **Framework**: Gin
 - **Database**: PostgreSQL with GORM
+- **Migrations**: gormigrate
 - **Authentication**: JWT (golang-jwt/jwt)
 - **Utilities**: godotenv, uuid, bcrypt (via golang.org/x/crypto)
 
@@ -17,7 +18,11 @@ e-shop-api/
 ├── cmd/
 │   ├── api/            # Main API server
 │   ├── migrate/        # Database migration
-│   └── seed/           # Data seeding
+│   ├── seed/           # Data seeding
+│   └── gen/            # Migration generator
+├── doc/
+├── internal/
+│   ├── migrations/    # Database migrations (gormigrate)
 ├── doc/
 │   ├── api/            # API documentation (HTML, YAML, PNG)
 │   └── erd/            # Database documentation (DBML, SQL, ERD PNG)
@@ -198,8 +203,16 @@ Or use an existing PostgreSQL instance.
 
 ### 4. Run Migrations
 
+Run pending migrations:
+
 ```bash
 go run cmd/migrate/main.go
+```
+
+Generate a new migration for a model:
+
+```bash
+go run cmd/gen/main.go <ModelName>
 ```
 
 ### 5. Seed Data (Optional)

@@ -20,6 +20,7 @@ type User struct {
 	Password string 	`gorm:"not null;column:password" json:"password"`
 	Role     UserRole 	`gorm:"type:varchar(20);default:buyer;column:role" json:"role"`
 	IsActive bool		`gorm:"default:true;column:is_active" json:"is_active"`
+	Picture  string		`gorm:"type:varchar(500);column:picture" json:"picture"`
 }
 
 func (User) TableName() string {

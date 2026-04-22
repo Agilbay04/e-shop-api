@@ -1,20 +1,28 @@
 package main
 
 import (
-	"log"
 	"e-shop-api/internal/config"
+	"e-shop-api/internal/migrations"
+	"log"
+
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	// 1. Load env
+	// Load env
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found")
 	}
 
-	// 2. Connect DB
+	// Connect DB
 	db := config.ConnectDatabase()
 
-	// 3. Run Migration
-	config.RunMigration(db)
+	// Run Migration
+	log.Println("Starting migrations...")
+
+    if err := migrations.RunMigrations(db); err != nil {
+        log.Fatalf("Migration failed: %v", err)
+    }
+
+    log.Println("Migrations completed successfully!")
 }
