@@ -6,7 +6,9 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 
 - **Language**: Go 1.25
 - **Framework**: Gin
-- **Database**: PostgreSQL with GORM
+- **Database**: PostgreSQL
+- **Pool**: DB connection pooling
+- **ORM**: GORM
 - **Migrations**: gormigrate
 - **Authentication**: JWT (golang-jwt/jwt)
 - **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, bcrypt (via golang.org/x/crypto)
@@ -143,6 +145,7 @@ This architecture provides:
 - **Error Handling**: Custom error responses with status codes
 - **Response Formatting**: Custom response formatting
 - **Transaction Support**: Database transactions for data integrity
+- **Database Pooling**: Database connection pooling for improved performance
 
 ## Getting Started
 
