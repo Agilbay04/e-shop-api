@@ -1,28 +1,17 @@
 package app
 
 import (
-	"reflect"
-	"strings"
+	"e-shop-api/internal/pkg/util"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	// Validator tag json
-    if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-        v.RegisterTagNameFunc(func(fld reflect.StructField) string {
-            name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-            if name == "-" {
-                return ""
-            }
-            return name
-        })
-    }
+	// Register json tag name
+	util.RegisterJSONTagName()
 
 	// Middleware
 	middlewareRegistry := NewMiddlewareRegistry(r)

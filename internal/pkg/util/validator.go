@@ -2,7 +2,10 @@ package util
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -39,4 +42,17 @@ func MsgForTag(tag string, param string) string {
 			return fmt.Sprintf("Value must be one of %s", param)
 	}
 	return "Invalid value"
+}
+
+// Register json tag name
+func RegisterJSONTagName() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
 }
