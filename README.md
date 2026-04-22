@@ -48,39 +48,39 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 
 ### Clean Architecture Principles
 
-| Principle | Implementation |
-|-----------|----------------|
-| **Separation of Concerns** | Handler (I/O), Service (Business), Repository (Data) layers are strictly separated |
-| **Dependency Inversion** | Services depend on repository interfaces, not concrete implementations |
-| **Interface Segregation** | Each repository has separate Write (`*Repo`) and Read (`*QueryRepo`) interfaces |
-| **Single Responsibility** | Each layer has one job - handlers receive, services process, repositories persist |
+| Principle                   | Implementation                                                                     |
+|-----------------------------|------------------------------------------------------------------------------------|
+| **Separation of Concerns**  | Handler (I/O), Service (Business), Repository (Data) layers are strictly separated |
+| **Dependency Inversion**    | Services depend on repository interfaces, not concrete implementations             |
+| **Interface Segregation**   | Each repository has separate Write (`*Repo`) and Read (`*QueryRepo`) interfaces    |
+| **Single Responsibility**   | Each layer has one job - handlers receive, services process, repositories persist  |
 
 ### Architecture Layers
 
-```
+```diagram
 +-------------------------------------------------------------+
-|                      Handler Layer                           |
-|                     (internal/handler)                     |
+|                      Handler Layer                          |
+|                     (internal/handler)                      |
 |   - HTTP request/response handling                          |
-|   - Input validation & binding                             |
-|   - Calls services, returns formatted responses            |
+|   - Input validation & binding                              |
+|   - Calls services, returns formatted responses             |
 +-------------------------------------------------------------+
-       | ^
-       v |
+                          | ^
+                          v |
 +-------------------------------------------------------------+
 |                      Service Layer                          |
-|                     (internal/service)                     |
-|   - Business logic & orchestration                         |
-|   - Transaction management (Begin/Commit/Rollback)         |
-|   - Depends on repository interfaces                     |
+|                     (internal/service)                      |
+|   - Business logic & orchestration                          |
+|   - Transaction management (Begin/Commit/Rollback)          |
+|   - Depends on repository interfaces                        |
 +-------------------------------------------------------------+
-       | ^
-       v |
+                          | ^
+                          v |
 +-------------------------------------------------------------+
-|                    Repository Layer                        |
-|                    (internal/repository)                   |
-|   - *Repository: Write operations (Create, Update)         |
-|   - *QueryRepository: Read operations (Find, List)         |
+|                    Repository Layer                         |
+|                    (internal/repository)                    |
+|   - *Repository: Write operations (Create, Update)          |
+|   - *QueryRepository: Read operations (Find, List)          |
 |   - Database operations via GORM                            |
 +-------------------------------------------------------------+
 ```
@@ -99,30 +99,31 @@ RegisterRoutes(...)       // Wires up HTTP handlers
 
 ### Data Flow
 
-```
-HTTP Request
-     |
-[Handler] - Validates input, binds JSON
-     |
+```diagram
+                HTTP Request
+                      |
+    [Handler] - Validates input, binds JSON
+                      |
 [Service] - Business logic, transaction management
-     |
-[Repository] - Database operations (GORM)
-     |
-[Database (PostgreSQL)]
-     ^
-[Response] - Formatted JSON via middleware
+                      |
+    [Repository] - Database operations (GORM)
+                      |
+          [Database (PostgreSQL)]
+                      ^
+    [Response] - Formatted JSON via middleware
 ```
 
 ### Additional Patterns
 
-| Pattern | Where Used |
-|---------|------------|
-| **DTO Pattern** | `internal/dto/` - Request/Response objects separate from DB models |
-| **Registry Pattern** | `internal/app/` - Centralized DI container |
-| **Transaction Script** | Services manage explicit DB transactions |
-| **Factory Pattern** | `NewXxxService()`, `NewXxxHandler()` constructors |
+| Pattern                 | Where Used                                                         |
+|-------------------------|--------------------------------------------------------------------|
+| **DTO Pattern**         | `internal/dto/` - Request/Response objects separate from DB models |
+| **Registry Pattern**    | `internal/app/` - Centralized DI container                         |
+| **Transaction Script**  | Services manage explicit DB transactions                           |
+| **Factory Pattern**     | `NewXxxService()`, `NewXxxHandler()` constructors                  |
 
 This architecture provides:
+
 - **Testability** - Services can be mocked via interfaces
 - **Maintainability** - Changes isolated to specific layers
 - **Flexibility** - Easy to swap database or transport layers
@@ -200,6 +201,7 @@ CORS_ALLOWED_ORIGINS=http://127.0.0.1:8001,http://127.0.0.1:5500
 ### 3. Start Database
 
 Using Docker Compose:
+
 ```bash
 docker-compose up -d
 ```
@@ -263,34 +265,35 @@ make clean
 
 | Method | Endpoint                  | Description           |
 |--------|---------------------------|-----------------------|
-| POST   | /api/v1/auth/register    | Register new user    |
-| POST   | /api/v1/auth/login       | Login user           |
-| GET    | /api/v1/auth/profile     | Get profile user     |
+| POST   | /api/v1/auth/register     | Register new user     |
+| POST   | /api/v1/auth/login        | Login user            |
 
 ### Protected Routes (Requires JWT)
 
-| Method | Endpoint                      | Description              |
-|--------|-------------------------------|--------------------------|
-| POST   | /api/v1/auth/upload-picture  | Upload profile picture |
-| POST   | /api/v1/stores                | Create store            |
-| GET    | /api/v1/stores                | List stores (paginated)|
-| PUT    | /api/v1/stores/:id            | Update store           |
-| PATCH  | /api/v1/stores/:id            | Delete store           |
-| PATCH  | /api/v1/stores/activate       | Activate/deactivate store|
-| POST   | /api/v1/products              | Create product          |
-| GET    | /api/v1/products              | List products (paginated)|
-| PUT    | /api/v1/products/:id          | Update product          |
-| PATCH  | /api/v1/products/:id          | Delete product          |
+| Method | Endpoint                      | Description                |
+|--------|-------------------------------|----------------------------|
+| GET    | /api/v1/auth/profile          | Get profile user           |
+| POST   | /api/v1/auth/upload-picture   | Upload profile picture     |
+| POST   | /api/v1/stores                | Create store               |
+| GET    | /api/v1/stores                | List stores (paginated)    |
+| PUT    | /api/v1/stores/:id            | Update store               |
+| PATCH  | /api/v1/stores/:id            | Delete store               |
+| PATCH  | /api/v1/stores/activate       | Activate/deactivate store  |
+| POST   | /api/v1/products              | Create product             |
+| GET    | /api/v1/products              | List products (paginated)  |
+| PUT    | /api/v1/products/:id          | Update product             |
+| PATCH  | /api/v1/products/:id          | Delete product             |
 | PATCH  | /api/v1/products/activate     | Activate/deactivate product|
-| POST   | /api/v1/orders                | Create order            |
-| GET    | /api/v1/orders                | List orders (paginated)|
-| PUT    | /api/v1/orders/:id            | Update order            |
-| PATCH  | /api/v1/orders/:id/cancel     | Cancel order           |
-| PATCH  | /api/v1/orders/:id/confirm    | Confirm order          |
+| POST   | /api/v1/orders                | Create order               |
+| GET    | /api/v1/orders                | List orders (paginated)    |
+| PUT    | /api/v1/orders/:id            | Update order               |
+| PATCH  | /api/v1/orders/:id/cancel     | Cancel order               |
+| PATCH  | /api/v1/orders/:id/confirm    | Confirm order              |
 
 ## Request/Response Examples
 
 ### Register
+
 ```bash
 POST /api/v1/auth/register
 Content-Type: application/json
@@ -303,6 +306,7 @@ Content-Type: application/json
 ```
 
 ### Login
+
 ```bash
 POST /api/v1/auth/login
 Content-Type: application/json
@@ -314,6 +318,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -322,6 +327,7 @@ Response:
 ```
 
 ### Create Store (Protected)
+
 ```bash
 POST /api/v1/stores
 Authorization: Bearer <token>
@@ -334,6 +340,7 @@ Content-Type: application/json
 ```
 
 ### Create Product (Protected)
+
 ```bash
 POST /api/v1/products
 Authorization: Bearer <token>
@@ -349,12 +356,14 @@ Content-Type: application/json
 ```
 
 ### List Products (Paginated)
+
 ```bash
 GET /api/v1/products?page=1&limit=10
 Authorization: Bearer <token>
 ```
 
 Response:
+
 ```json
 {
   "items": [...],
@@ -368,6 +377,7 @@ Response:
 ```
 
 ### Create Order (Protected)
+
 ```bash
 POST /api/v1/orders
 Authorization: Bearer <token>
@@ -387,9 +397,11 @@ Content-Type: application/json
 ## Documentation
 
 ### API Documentation
+
 The API documentation is available as an interactive HTML collection in `doc/api/e-shop-api-documentation.html`.
 
 **How to view:**
+
 1. Install the **Live Server** extension in VS Code (by Ritwick Dey)
 2. Right-click `doc/api/e-shop-api-documentation.html`
 3. Select "Open with Live Server"
@@ -397,9 +409,11 @@ The API documentation is available as an interactive HTML collection in `doc/api
 The documentation will open in your default browser, allowing you to test all API endpoints with the configured environment (base URL: `http://localhost:8001`).
 
 ### Database Schema (DBML)
+
 The database schema is defined in `doc/erd/e_shop_db.dbml` using DBML (Database Markup Language).
 
 **How to view:**
+
 1. Install a DBML viewer extension in VS Code (e.g., **DBML** by mohsen1)
 2. Open `doc/erd/e_shop_db.dbml` to see an interactive ERD diagram
 3. Alternatively, view the pre-generated ERD image at `doc/erd/e_shop_db_erd.png`
