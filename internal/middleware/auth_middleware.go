@@ -44,6 +44,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			Username: claims.Username,
 			Email:    claims.Email,
 			Role:     claims.Role,
+			Picture:  claims.Picture,
 		}
 		
 		// Set current user to context

@@ -5,7 +5,7 @@ import (
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
-	"errors"
+	"os"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -15,6 +15,7 @@ type AuthService interface {
 	Register(req dto.RegisterRequest) (dto.UserResponse, error)
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
 	Profile(user dto.CurrentUser) (dto.UserResponse, error)
+	UploadPicture(req dto.UploadPictureRequest, user dto.CurrentUser) (dto.UserResponse, error)
 }
 
 type authService struct {
@@ -48,7 +49,7 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 	u, err := s.userQueryRepo.FindByEmail(req.Email)
 	if err == nil && u != nil {
 		tx.Rollback()
-		return dto.UserResponse{}, errors.New("user already exists")
+		return dto.UserResponse{}, util.BadRequestException("Email already use by another account", err)
 	}
 
 	newUser := model.User{
@@ -86,7 +87,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 		return dto.LoginResponse{}, util.UnauthorizedException("Invalid email or password")
 	}
 
-	token, err := util.GenerateToken(u.ID, u.Username, u.Email, u.Role)
+	token, err := util.GenerateToken(u.ID, u.Username, u.Email, u.Picture, u.Role)
 	if err != nil {
 		return dto.LoginResponse{}, util.UnauthorizedException("Token is invalid or expired")
 	}
@@ -108,5 +109,66 @@ func (s *authService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {
 		Username: user.Username,
 		Email:    user.Email,
 		Role:     user.Role,
+		Picture:  user.Picture,
 	}, nil
 }
+
+func (s *authService) UploadPicture(
+	req dto.UploadPictureRequest, 
+	user dto.CurrentUser,
+) (dto.UserResponse, error) {
+	tx := s.db.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	uploader := util.NewFileUploader(
+		util.WithDirectory("uploads/avatars"),
+		util.WithMaxSize(2),
+		util.WithExtensions([]string{".jpg", ".jpeg", ".png", ".webp"}),
+	)
+
+	userData, err := s.userQueryRepo.FindByID(user.ID.String())
+	if err != nil {
+		tx.Rollback()
+		return dto.UserResponse{}, err;
+	}
+
+	oldPath := userData.Picture
+
+	newPath, err := uploader.UploadFile(req.Picture)
+	if err != nil {
+		tx.Rollback()
+		return dto.UserResponse{}, err
+	}
+
+	userData.Picture = newPath
+	if err := s.userRepo.Update(tx, userData); err != nil {
+		tx.Rollback()
+		os.Remove(newPath)
+		return dto.UserResponse{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		os.Remove(newPath)
+		return dto.UserResponse{}, err
+	}
+
+	if oldPath != "" {
+		os.Remove(oldPath)
+	}
+
+	return dto.UserResponse{
+		ID:       userData.ID.String(),
+		Username: userData.Username,
+		Email:    userData.Email,
+		Role:     userData.Role,
+		Picture:  userData.Picture,
+	}, nil
+}
+

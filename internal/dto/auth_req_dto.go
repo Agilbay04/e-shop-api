@@ -1,6 +1,9 @@
 package dto
 
-import "e-shop-api/internal/model"
+import (
+	"e-shop-api/internal/model"
+	"mime/multipart"
+)
 
 type RegisterRequest struct {
 	Username string 		`json:"username" binding:"required,min=3"`
@@ -12,4 +15,8 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+type UploadPictureRequest struct {
+	Picture *multipart.FileHeader `form:"picture" binding:"required"`
 }

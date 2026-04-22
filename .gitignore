@@ -28,3 +28,6 @@ vendor/
 # Editor/IDE
 .idea/
 .vscode/
+
+# Static files
+uploads/

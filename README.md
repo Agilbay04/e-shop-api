@@ -34,9 +34,11 @@ e-shop-api/
 │   ├── repository/     # Database repositories
 │   ├── service/        # Business logic services
 │   └── pkg/util/       # Utility packages (JWT, exceptions)
-├── docker-compose.yml
-├── .env.example
-└── go.mod
+├── uploads/            # Static file storage
+├── .env.example        # Example environment file
+├── docker-compose.yml  # Docker Compose file
+├── go.mod              # Go module file
+└── go.sum              # Go module checksum file
 ```
 
 ## Architecture
@@ -127,6 +129,7 @@ This architecture provides:
 ## Features
 
 - **User Authentication**: Register and login with JWT-based authentication
+- **Upload File Handling**: Upload file handling with custom options and validation
 - **RBAC**: Role-based access control
 - **Store Management**: Create, update, delete, and activate/deactivate stores
 - **Product Management**: CRUD operations for products with categories
@@ -175,6 +178,7 @@ DB_PORT=<db_port>
 
 # JWT
 JWT_SECRET_KEY=<jwt_secret_key>
+JWT_TTL=3600 #seconds
 
 # SMTP EMAIL
 SMTP_HOST=localhost
@@ -241,6 +245,7 @@ The server will start on `http://localhost:8001` (or the port specified in `.env
 
 | Method | Endpoint                      | Description              |
 |--------|-------------------------------|--------------------------|
+| POST   | /api/v1/auth/upload-picture  | Upload profile picture |
 | POST   | /api/v1/stores                | Create store            |
 | GET    | /api/v1/stores                | List stores (paginated)|
 | PUT    | /api/v1/stores/:id            | Update store           |

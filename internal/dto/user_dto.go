@@ -11,4 +11,5 @@ type CurrentUser struct {
     Username string         `json:"username"`
     Email    string         `json:"email"`
     Role     model.UserRole `json:"role"`
+    Picture  string         `json:"picture"`
 }

@@ -7,6 +7,7 @@ import (
 
 type UserRepository interface {
 	Create(tx *gorm.DB, user *model.User) error
+	Update(tx *gorm.DB, user *model.User) error
 }
 
 type userRepository struct {
@@ -22,4 +23,11 @@ func (r *userRepository) Create(tx *gorm.DB, user *model.User) error {
 		return tx.Create(user).Error
 	}
 	return r.db.Create(user).Error
+}
+
+func (r *userRepository) Update(tx *gorm.DB, user *model.User) error {
+	if tx != nil {
+		return tx.Save(user).Error
+	}
+	return r.db.Save(user).Error
 }

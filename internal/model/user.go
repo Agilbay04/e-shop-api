@@ -28,12 +28,12 @@ func (User) TableName() string {
 }
 
 func (u *User) BeforeSave(tx *gorm.DB) (err error) {
-	if u.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		u.Password = string(hashedPassword)
-	}
-	return nil
+	if tx.Statement.Changed("Password") && u.Password != "" {
+        hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+        if err != nil {
+            return err
+        }
+        u.Password = string(hashedPassword)
+    }
+    return nil
 }

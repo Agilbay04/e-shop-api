@@ -4,6 +4,7 @@ import (
 	"e-shop-api/internal/model"
 	"errors"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,19 +16,25 @@ type CustomClaims struct {
 	Username string    		`json:"username"`
 	Email    string    		`json:"email"`
 	Role     model.UserRole	`json:"role"`
+	Picture  string			`json:"picture"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(id uuid.UUID, username, email string, role model.UserRole) (string, error) {
+func GenerateToken(id uuid.UUID, username, email, picture string, role model.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
+	ttl, err := strconv.Atoi(os.Getenv("JWT_TTL"))
+	if err != nil {
+		ttl = 3600
+	} 
 
 	claims := CustomClaims{
 		ID:       id,
 		Username: username,
 		Email:    email,
 		Role:     role,
+		Picture:  picture,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)), // JWT TTL 1 hour
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(ttl) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

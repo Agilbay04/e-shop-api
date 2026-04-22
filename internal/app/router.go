@@ -31,6 +31,7 @@ func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 		protected.Use(m.Auth)
 		{
 			protected.GET("/profile", h.AuthHandler.Profile)
+			protected.POST("/upload-picture", h.AuthHandler.UploadPicture)
 		}
 	}
 }
@@ -40,7 +41,7 @@ func registerStoreRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 	{
 		// Publicly available for all authenticated users
 		stores.GET("/", h.StoreHandler.GetStores)
-		
+
 		// Actions requiring Seller or Admin privileges
 		privileged := stores.Group("/")
 
