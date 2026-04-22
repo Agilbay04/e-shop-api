@@ -17,21 +17,19 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 e-shop-api/
 ├── cmd/
 │   ├── api/            # Main API server
+│   ├── gen/            # Migration generator
 │   ├── migrate/        # Database migration
-│   ├── seed/           # Data seeding
-│   └── gen/            # Migration generator
-├── doc/
-├── internal/
-│   ├── migrations/    # Database migrations (gormigrate)
+│   └── seed/           # Data seeding
 ├── doc/
 │   ├── api/            # API documentation (HTML, YAML, PNG)
 │   └── erd/            # Database documentation (DBML, SQL, ERD PNG)
 ├── internal/
 │   ├── app/            # Application setup (router, DI registries)
-│   ├── config/         # Configuration (database, migration, seeder)
+│   ├── config/         # Configuration (database, seeder)
 │   ├── dto/            # Data Transfer Objects
 │   ├── handler/        # HTTP handlers
 │   ├── middleware/     # Middleware (auth, response)
+│   ├── migrations/     # Database migrations (gormigrate)
 │   ├── model/          # Database models
 │   ├── repository/     # Database repositories
 │   ├── service/        # Business logic services
