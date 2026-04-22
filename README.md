@@ -36,6 +36,91 @@ e-shop-api/
 └── go.mod
 ```
 
+## Architecture
+
+This project implements a **Layered Architecture (3-Tier)** with principles inspired by **Clean Architecture** and **Dependency Injection (DI)**.
+
+### Clean Architecture Principles
+
+| Principle | Implementation |
+|-----------|----------------|
+| **Separation of Concerns** | Handler (I/O), Service (Business), Repository (Data) layers are strictly separated |
+| **Dependency Inversion** | Services depend on repository interfaces, not concrete implementations |
+| **Interface Segregation** | Each repository has separate Write (`*Repo`) and Read (`*QueryRepo`) interfaces |
+| **Single Responsibility** | Each layer has one job - handlers receive, services process, repositories persist |
+
+### Architecture Layers
+
+```
++-------------------------------------------------------------+
+|                      Handler Layer                           |
+|                     (internal/handler)                     |
+|   - HTTP request/response handling                          |
+|   - Input validation & binding                             |
+|   - Calls services, returns formatted responses            |
++-------------------------------------------------------------+
+       | ^
+       v |
++-------------------------------------------------------------+
+|                      Service Layer                          |
+|                     (internal/service)                     |
+|   - Business logic & orchestration                         |
+|   - Transaction management (Begin/Commit/Rollback)         |
+|   - Depends on repository interfaces                     |
++-------------------------------------------------------------+
+       | ^
+       v |
++-------------------------------------------------------------+
+|                    Repository Layer                        |
+|                    (internal/repository)                   |
+|   - *Repository: Write operations (Create, Update)         |
+|   - *QueryRepository: Read operations (Find, List)         |
+|   - Database operations via GORM                            |
++-------------------------------------------------------------+
+```
+
+### Dependency Injection (DI)
+
+The project uses a **Registry Pattern** to manage dependencies:
+
+```go
+// internal/app/
+NewRepositoryRegistry(db)    // Creates all repository instances
+NewServiceRegistry(...)      // Injects repositories into services
+NewHandlerRegistry(...)    // Injects services into handlers
+RegisterRoutes(...)       // Wires up HTTP handlers
+```
+
+### Data Flow
+
+```
+HTTP Request
+     |
+[Handler] - Validates input, binds JSON
+     |
+[Service] - Business logic, transaction management
+     |
+[Repository] - Database operations (GORM)
+     |
+[Database (PostgreSQL)]
+     ^
+[Response] - Formatted JSON via middleware
+```
+
+### Additional Patterns
+
+| Pattern | Where Used |
+|---------|------------|
+| **DTO Pattern** | `internal/dto/` - Request/Response objects separate from DB models |
+| **Registry Pattern** | `internal/app/` - Centralized DI container |
+| **Transaction Script** | Services manage explicit DB transactions |
+| **Factory Pattern** | `NewXxxService()`, `NewXxxHandler()` constructors |
+
+This architecture provides:
+- **Testability** - Services can be mocked via interfaces
+- **Maintainability** - Changes isolated to specific layers
+- **Flexibility** - Easy to swap database or transport layers
+
 ## Features
 
 - **User Authentication**: Register and login with JWT-based authentication
