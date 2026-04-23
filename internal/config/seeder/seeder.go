@@ -1,27 +1,32 @@
 package seeder
 
 import (
-	"log"
+	"e-shop-api/internal/pkg/logger"
 	"gorm.io/gorm"
+
+	"go.uber.org/zap"
 )
 
 func RunSeeder(db *gorm.DB) {
-	log.Println("Running database seeding...")
+	logger.InitLogger()
+	defer logger.Log.Sync()
+
+	logger.Log.Info("Running database seeding...")
 
 	// 1. Seed Users
 	if err := SeedUsers(db); err != nil {
-		log.Fatalf("Failed to seed users: %v", err)
+		logger.Log.Fatal("Failed to seed users", zap.Error(err))
 	}
 
 	// 2. Seed Stores
 	if err := SeedStores(db); err != nil {
-		log.Fatalf("Failed to seed stores: %v", err)
+		logger.Log.Fatal("Failed to seed stores", zap.Error(err))
 	}
 
 	// 3. Seed Products
 	if err := SeedProducts(db); err != nil {
-		log.Fatalf("Failed to seed products: %v", err)
+		logger.Log.Fatal("Failed to seed products", zap.Error(err))
 	}
 
-	log.Println("Seeding completed successfully!")
+	logger.Log.Info("Seeding completed successfully!")
 }

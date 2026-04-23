@@ -3,26 +3,24 @@ package main
 import (
 	"e-shop-api/internal/config"
 	"e-shop-api/internal/migrations"
-	"log"
+	"e-shop-api/internal/pkg/logger"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 func main() {
-	// Load env
-	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: .env file not found")
-	}
+	godotenv.Load()
+	logger.InitLogger()
+	defer logger.Log.Sync()
 
-	// Connect DB
+	logger.Log.Info("Starting migrations...")
+
 	db := config.ConnectDatabase()
 
-	// Run Migration
-	log.Println("Starting migrations...")
+	if err := migrations.RunMigrations(db); err != nil {
+		logger.Log.Fatal("Migration failed", zap.Error(err))
+	}
 
-    if err := migrations.RunMigrations(db); err != nil {
-        log.Fatalf("Migration failed: %v", err)
-    }
-
-    log.Println("Migrations completed successfully!")
+	logger.Log.Info("Migrations completed successfully!")
 }

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/util"
 	"time"
 
@@ -15,6 +16,7 @@ func RateLimiter(rdb *redis.Client, limitKey string, duration time.Duration) gin
 		key := "limit:" + limitKey + ":" + ctx.ClientIP()
 
 		if util.IsRateLimited(rdb, key, duration) {
+			logger.Log.Warn("To many request, please try again later.")
 			ctx.Error(util.ToManyRequestException("To many request, please try again later."))
 			ctx.Abort()
 			return

@@ -2,7 +2,7 @@ package util
 
 import (
 	"context"
-	"log"
+	"e-shop-api/internal/pkg/logger"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +22,7 @@ func GracefulShutdown(srv *http.Server, db *gorm.DB, rdb *redis.Client, timeout 
 
 	// Block until a signal is received
 	<-quit
-	log.Println("Shutting down server...")
+	logger.Log.Info("Shutting down server...")
 
 	// Create new context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -29,7 +30,7 @@ func GracefulShutdown(srv *http.Server, db *gorm.DB, rdb *redis.Client, timeout 
 
 	// Shutdown the server
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		logger.Log.Fatal("Server forced to shutdown: %v", zap.Error(err))
 	}
 
 	// Close database connection
@@ -37,15 +38,15 @@ func GracefulShutdown(srv *http.Server, db *gorm.DB, rdb *redis.Client, timeout 
 		sqlDB, err := db.DB()
 		if err == nil {
 			sqlDB.Close()
-			log.Println("Database connection closed.")
+			logger.Log.Info("Database connection closed.")
 		}
 	}
 
 	// Close Redis connection
 	if rdb != nil {
 		rdb.Close()
-		log.Println("Redis connection closed.")
+		logger.Log.Info("Redis connection closed.")
 	}
 
-	log.Println("Server exited gracefully")
+	logger.Log.Info("Server exited gracefully")
 }

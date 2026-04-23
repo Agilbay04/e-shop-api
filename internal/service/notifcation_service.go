@@ -1,8 +1,10 @@
 package service
 
 import (
+	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/util"
-	"log"
+
+	"go.uber.org/zap"
 )
 
 type NotificationService interface {
@@ -16,13 +18,12 @@ func NewNotificationService() NotificationService {
 }
 
 func (s *notificationService) QueueSendEmail(to, subject, body string) {
-    // Use goroutine to send email
-    util.SafeGo(func() {
-        err := util.SendEmail(to, subject, body)
-        if err != nil {
-            log.Printf("[Email Error] Failed to send to %s: %v", to, err)
-            return
-        }
-        log.Printf("[Email Success] Sent to %s", to)
-    })
+	util.SafeGo(func() {
+		err := util.SendEmail(to, subject, body)
+		if err != nil {
+			logger.Log.Info("[Email Error] Failed to send", zap.String("to", to), zap.Error(err))
+			return
+		}
+		logger.Log.Info("[Email Success] Sent", zap.String("to", to))
+	})
 }

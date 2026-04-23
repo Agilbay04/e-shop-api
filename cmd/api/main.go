@@ -3,22 +3,29 @@ package main
 import (
 	"e-shop-api/internal/app"
 	"e-shop-api/internal/config"
+	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/util"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 func main() {
 	// Load file .env
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Warning: .env file not found, using system environment variables")
+		logger.Log.Info("Warning: .env file not found, using system environment variables")
 	}
+
+	// Init logger
+	logger.InitLogger()
+	defer logger.Log.Sync()
+
+	logger.Log.Info("Starting server...")
 
 	// Connect database
 	db := config.ConnectDatabase()
@@ -39,9 +46,9 @@ func main() {
 
     // Run server in goroutine
     go func() {
-        log.Printf("Server starting on port %s", port)
+		logger.Log.Info("Server starting on http://localhost:" + port, zap.String("port", port))
         if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-            log.Fatalf("Listen error: %v", err)
+            logger.Log.Fatal("Listen error: %v", zap.Error(err))
         }
     }()
 

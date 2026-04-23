@@ -2,9 +2,12 @@ package config
 
 import (
 	"context"
+	"e-shop-api/internal/pkg/logger"
 	"fmt"
 	"os"
+
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 func ConnectRedis() *redis.Client {
@@ -16,9 +19,10 @@ func ConnectRedis() *redis.Client {
 
 	// Test connection
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		logger.Log.Fatal("Failed connect to Redis:", zap.Error(err))
 		panic(fmt.Sprintf("Failed connect to Redis: %v", err))
 	}
 
-	fmt.Println("Connected to Redis!")
+	logger.Log.Info("Connected to Redis!")
 	return rdb
 }

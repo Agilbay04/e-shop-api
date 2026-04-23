@@ -1,11 +1,13 @@
 package config
 
 import (
+	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/util"
 	"fmt"
 	"os"
 	"time"
 
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -22,18 +24,20 @@ func ConnectDatabase() *gorm.DB {
 	
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
+		logger.Log.Fatal("Failed to connect to database:", zap.Error(err))
 		panic("Failed to connect to database!")
 	}
 
 	setupDatabasePooling(db)
 
-	fmt.Println("Connected to database!")
+	logger.Log.Info("Connected to database!")
 	return db
 }
 
 func setupDatabasePooling(db *gorm.DB) {
 	sqlDB, err := db.DB()
 	if err != nil {
+		logger.Log.Fatal("Failed to setup database pooling:", zap.Error(err))
 		panic("Failed to setup database pooling!")
 	}
 
