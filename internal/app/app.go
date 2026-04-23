@@ -1,16 +1,15 @@
 package app
 
 import (
-	"e-shop-api/internal/config"
 	"e-shop-api/internal/pkg/util"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func SetupRouter(db *gorm.DB) *gin.Engine {
+func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	r := gin.Default()
-	rdb := config.ConnectRedis()
 
 	// Register json tag name
 	util.RegisterJSONTagName()

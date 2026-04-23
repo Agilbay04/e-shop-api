@@ -149,6 +149,7 @@ This architecture provides:
 - **Database Pooling**: Database connection pooling for improved performance
 - **Redis Caching**: Redis caching for improved performance
 - **Rate Limiting**: Request rate limiting using Redis (5 req/5s for login, 1 req/1min for forgot-password)
+- **Graceful Shutdown**: Graceful shutdown handling for server, DB, and Redis connections
 
 ## Getting Started
 
