@@ -21,9 +21,9 @@ func (s *notificationService) QueueSendEmail(to, subject, body string) {
 	util.SafeGo(func() {
 		err := util.SendEmail(to, subject, body)
 		if err != nil {
-			logger.Log.Info("[Email Error] Failed to send", zap.String("to", to), zap.Error(err))
+			logger.L.Info("[Email Error] Failed to send", zap.String("to", to), zap.Error(err))
 			return
 		}
-		logger.Log.Info("[Email Success] Sent", zap.String("to", to))
+		logger.L.Info("[Email Success] Sent", zap.String("to", to))
 	})
 }

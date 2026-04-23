@@ -11,7 +11,7 @@ func SafeGo(task func()) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				logger.Log.Info("[Goroutine Panic] Recovered", zap.Any("error", r))
+				logger.L.Info("[Goroutine Panic] Recovered", zap.Any("error", r))
 			}
 		}()
 

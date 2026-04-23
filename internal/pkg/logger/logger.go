@@ -8,6 +8,7 @@ import (
 )
 
 var Log *zap.Logger
+var L *zap.Logger
 
 func InitLogger() {
 	// App Env
@@ -44,4 +45,5 @@ func InitLogger() {
 
 	// Add caller for trigger logging
 	Log = zap.New(core, zap.AddCaller())
+	L = Log
 }

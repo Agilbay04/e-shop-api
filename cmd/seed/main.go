@@ -12,12 +12,12 @@ import (
 func main() {
 	godotenv.Load()
 	logger.InitLogger()
-	defer logger.Log.Sync()
+	defer logger.L.Sync()
 
 	db := config.ConnectDatabase()
 
 	if os.Getenv("APP_ENV") == "development" {
-		logger.Log.Info("Starting Seeder...")
+		logger.L.Info("Starting Seeder...")
 		seeder.RunSeeder(db)
 	}
 }

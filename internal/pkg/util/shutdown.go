@@ -22,7 +22,7 @@ func GracefulShutdown(srv *http.Server, db *gorm.DB, rdb *redis.Client, timeout 
 
 	// Block until a signal is received
 	<-quit
-	logger.Log.Info("Shutting down server...")
+	logger.L.Info("Shutting down server...")
 
 	// Create new context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -30,7 +30,7 @@ func GracefulShutdown(srv *http.Server, db *gorm.DB, rdb *redis.Client, timeout 
 
 	// Shutdown the server
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Log.Fatal("Server forced to shutdown: %v", zap.Error(err))
+		logger.L.Fatal("Server forced to shutdown: %v", zap.Error(err))
 	}
 
 	// Close database connection
@@ -38,15 +38,15 @@ func GracefulShutdown(srv *http.Server, db *gorm.DB, rdb *redis.Client, timeout 
 		sqlDB, err := db.DB()
 		if err == nil {
 			sqlDB.Close()
-			logger.Log.Info("Database connection closed.")
+			logger.L.Info("Database connection closed.")
 		}
 	}
 
 	// Close Redis connection
 	if rdb != nil {
 		rdb.Close()
-		logger.Log.Info("Redis connection closed.")
+		logger.L.Info("Redis connection closed.")
 	}
 
-	logger.Log.Info("Server exited gracefully")
+	logger.L.Info("Server exited gracefully")
 }

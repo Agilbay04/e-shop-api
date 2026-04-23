@@ -11,7 +11,7 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 - **ORM**: GORM
 - **Migrations**: gormigrate
 - **Authentication**: JWT (golang-jwt/jwt)
-- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, redis, bcrypt (via golang.org/x/crypto)
+- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, redis, bcrypt (via golang.org/x/crypto), zap
 
 ## Project Structure
 
@@ -27,15 +27,15 @@ e-shop-api/
 │   └── erd/            # Database documentation (DBML, SQL, ERD PNG)
 ├── internal/
 │   ├── app/            # Application setup (router, DI registries)
-│   ├── config/         # Configuration (database, seeder)
+│   ├── config/         # Configuration (database, seeder, redis)
 │   ├── dto/            # Data Transfer Objects
 │   ├── handler/        # HTTP handlers
-│   ├── middleware/     # Middleware (auth, response)
+│   ├── middleware/     # Middleware
 │   ├── migrations/     # Database migrations (gormigrate)
 │   ├── model/          # Database models
 │   ├── repository/     # Database repositories
 │   ├── service/        # Business logic services
-│   └── pkg/util/       # Utility packages (JWT, exceptions)
+│   └── pkg/util/       # Utility packages (logger, auth, pagination, etc.)
 ├── uploads/            # Static file storage
 ├── .env.example        # Example environment file
 ├── docker-compose.yml  # Docker Compose file
@@ -150,6 +150,57 @@ This architecture provides:
 - **Redis Caching**: Redis caching for improved performance
 - **Rate Limiting**: Request rate limiting using Redis (5 req/5s for login, 1 req/1min for forgot-password)
 - **Graceful Shutdown**: Graceful shutdown handling for server, DB, and Redis connections
+- **Logging**: Structured logging with Zap
+
+## Logging
+
+This project uses **Zap** for structured logging. The logger is configured in `internal/pkg/logger/logger.go`.
+
+### Initialization
+
+```go
+func main() {
+    logger.InitLogger()
+    defer logger.L.Sync()
+    // ... rest of your code
+}
+```
+
+### Usage
+
+The logger exposes two aliases: `logger.Log` and `logger.L` (shorter syntax).
+
+```go
+import (
+    "e-shop-api/internal/pkg/logger"
+    "go.uber.org/zap"
+)
+
+// Info logging
+logger.L.Info("Server started", zap.String("port", "8001"))
+
+// Error logging
+logger.L.Fatal("Failed to connect to database", zap.Error(err))
+
+// Warning logging
+logger.L.Warn("Rate limit exceeded", zap.String("ip", clientIP))
+```
+
+### Available Fields
+
+| Field Type                | Usage                 |
+|---------------------------|-----------------------|
+| `zap.String(key, value)`  | Log a string field    |
+| `zap.Int(key, value)`     | Log an integer field  |
+| `zap.Error(err)`          | Log an error          |
+| `zap.Any(key, value)`     | Log any type          |
+| `zap.Bool(key, value)`    | Log a boolean         |
+| `zap.Float64(key, value)` | Log a float           |
+
+### Output Format
+
+- **Development mode** (`APP_ENV=development`): Console output with colors
+- **Production mode**: JSON output for log aggregation
 
 ## Getting Started
 

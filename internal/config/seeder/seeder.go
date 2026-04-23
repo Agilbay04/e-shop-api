@@ -9,24 +9,24 @@ import (
 
 func RunSeeder(db *gorm.DB) {
 	logger.InitLogger()
-	defer logger.Log.Sync()
+	defer logger.L.Sync()
 
-	logger.Log.Info("Running database seeding...")
+	logger.L.Info("Running database seeding...")
 
 	// 1. Seed Users
 	if err := SeedUsers(db); err != nil {
-		logger.Log.Fatal("Failed to seed users", zap.Error(err))
+		logger.L.Fatal("Failed to seed users", zap.Error(err))
 	}
 
 	// 2. Seed Stores
 	if err := SeedStores(db); err != nil {
-		logger.Log.Fatal("Failed to seed stores", zap.Error(err))
+		logger.L.Fatal("Failed to seed stores", zap.Error(err))
 	}
 
 	// 3. Seed Products
 	if err := SeedProducts(db); err != nil {
-		logger.Log.Fatal("Failed to seed products", zap.Error(err))
+		logger.L.Fatal("Failed to seed products", zap.Error(err))
 	}
 
-	logger.Log.Info("Seeding completed successfully!")
+	logger.L.Info("Seeding completed successfully!")
 }

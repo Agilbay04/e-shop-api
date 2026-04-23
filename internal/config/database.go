@@ -24,20 +24,20 @@ func ConnectDatabase() *gorm.DB {
 	
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		logger.Log.Fatal("Failed to connect to database:", zap.Error(err))
+		logger.L.Fatal("Failed to connect to database:", zap.Error(err))
 		panic("Failed to connect to database!")
 	}
 
 	setupDatabasePooling(db)
 
-	logger.Log.Info("Connected to database!")
+	logger.L.Info("Connected to database!")
 	return db
 }
 
 func setupDatabasePooling(db *gorm.DB) {
 	sqlDB, err := db.DB()
 	if err != nil {
-		logger.Log.Fatal("Failed to setup database pooling:", zap.Error(err))
+		logger.L.Fatal("Failed to setup database pooling:", zap.Error(err))
 		panic("Failed to setup database pooling!")
 	}
 

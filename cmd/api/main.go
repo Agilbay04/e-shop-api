@@ -18,14 +18,14 @@ func main() {
 	// Load file .env
 	err := godotenv.Load()
 	if err != nil {
-		logger.Log.Info("Warning: .env file not found, using system environment variables")
+		logger.L.Info("Warning: .env file not found, using system environment variables")
 	}
 
 	// Init logger
 	logger.InitLogger()
-	defer logger.Log.Sync()
+	defer logger.L.Sync()
 
-	logger.Log.Info("Starting server...")
+	logger.L.Info("Starting server...")
 
 	// Connect database
 	db := config.ConnectDatabase()
@@ -46,9 +46,9 @@ func main() {
 
     // Run server in goroutine
     go func() {
-		logger.Log.Info("Server starting on http://localhost:" + port, zap.String("port", port))
+		logger.L.Info("Server starting on http://localhost:" + port, zap.String("port", port))
         if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-            logger.Log.Fatal("Listen error: %v", zap.Error(err))
+            logger.L.Fatal("Listen error: %v", zap.Error(err))
         }
     }()
 

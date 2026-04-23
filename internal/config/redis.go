@@ -19,10 +19,10 @@ func ConnectRedis() *redis.Client {
 
 	// Test connection
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		logger.Log.Fatal("Failed connect to Redis:", zap.Error(err))
+		logger.L.Fatal("Failed connect to Redis:", zap.Error(err))
 		panic(fmt.Sprintf("Failed connect to Redis: %v", err))
 	}
 
-	logger.Log.Info("Connected to Redis!")
+	logger.L.Info("Connected to Redis!")
 	return rdb
 }

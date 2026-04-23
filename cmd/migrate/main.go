@@ -12,15 +12,15 @@ import (
 func main() {
 	godotenv.Load()
 	logger.InitLogger()
-	defer logger.Log.Sync()
+	defer logger.L.Sync()
 
-	logger.Log.Info("Starting migrations...")
+	logger.L.Info("Starting migrations...")
 
 	db := config.ConnectDatabase()
 
 	if err := migrations.RunMigrations(db); err != nil {
-		logger.Log.Fatal("Migration failed", zap.Error(err))
+		logger.L.Fatal("Migration failed", zap.Error(err))
 	}
 
-	logger.Log.Info("Migrations completed successfully!")
+	logger.L.Info("Migrations completed successfully!")
 }
