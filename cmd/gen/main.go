@@ -1,6 +1,7 @@
 package main
 
 import (
+	"e-shop-api/internal/pkg/util"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -66,7 +67,7 @@ func main() {
 
 	ts := time.Now().Format("20060102150405")
 	dirPath := "internal/migrations"
-	os.MkdirAll(dirPath, 0755)
+	util.MakeDir(dirPath)
 
 	fileName := filepath.Join(dirPath, fmt.Sprintf("%s_%s_migration.go", ts, lowerName))
 

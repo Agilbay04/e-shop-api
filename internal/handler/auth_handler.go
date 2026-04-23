@@ -77,3 +77,36 @@ func (h *AuthHandler) UploadPicture(ctx *gin.Context) {
 
 	Ok(ctx, res, "Success update profile")
 }
+
+func (h *AuthHandler) ForgotPassword(ctx *gin.Context) {
+	var req dto.ForgotPasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.Error(util.BadRequestException("Invalid request body", err))
+		return
+	}
+
+	err := h.authService.ForgotPassword(req)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	Ok(ctx, nil, "Request reset password has been sent to your email: " + req.Email)
+}
+
+func (h *AuthHandler) ResetPassword(ctx *gin.Context) {
+	var req dto.ResetPasswordRequest
+
+	if err := ctx.ShouldBind(&req); err != nil {
+		ctx.Error(util.BadRequestException("Invalid request body", err))
+		return
+	}
+
+	err := h.authService.ResetPassword(req)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	Ok(ctx, nil, "Success reset password, try login again with new password")
+}

@@ -98,7 +98,7 @@ func (o *orderService) CreateOrder(
 
 	// send notification
 	if req.IsCheckout {
-		o.notifService.SendOrderEmail(
+		o.notifService.QueueSendEmail(
 			user.Email,
 			"Order Confirmation",
 			"Your order "+newOrder.ID.String()+" has been successfully placed.",
@@ -275,7 +275,7 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 
 	// send notification
 	if req.IsCheckout {
-		o.notifService.SendOrderEmail(
+		o.notifService.QueueSendEmail(
 			user.Email,
 			"Order Confirmation",
 			"Your order "+order.ID.String()+" has been successfully placed.",
@@ -386,7 +386,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	}
 
 	// Send Notification
-	s.notifService.SendOrderEmail(
+	s.notifService.QueueSendEmail(
 		user.Email, 
 		"Order has been cancelled",
 		"Order with ID "+orderID+" has been cancelled",
@@ -463,7 +463,7 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 	}
 
 	// Send Notification
-	s.notifService.SendOrderEmail(
+	s.notifService.QueueSendEmail(
 		user.Email, 
 		"Order has been confirmed",
 		"Order with ID "+orderID+" has been confirmed",

@@ -40,6 +40,8 @@ func MsgForTag(tag string, param string) string {
 			return fmt.Sprintf("Value must be greater than or equal to %s", param)
 		case "oneof":
 			return fmt.Sprintf("Value must be one of %s", param)
+		case "eqfield":
+			return fmt.Sprintf("Value must be equal to %s", param)
 	}
 	return "Invalid value"
 }

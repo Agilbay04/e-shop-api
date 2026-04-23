@@ -5,7 +5,6 @@ import (
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
-	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -58,14 +57,14 @@ func (s *storeService) CreateStore(
 
 	if user.Role != model.Seller {
 		tx.Rollback()
-		return dto.CreateStoreResponse{}, errors.New("User is not a seller")
+		return dto.CreateStoreResponse{}, util.UnauthorizedException("User is not a seller")
 	}
 
 	existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID.String())
 
 	if err == nil && existingStore != nil {
 		tx.Rollback()
-		return dto.CreateStoreResponse{}, errors.New("User " + user.Username + " already has a store")
+		return dto.CreateStoreResponse{}, util.BadRequestException("User " + user.Username + " already has a store", err)
 	}
 
 	store := &model.Store{

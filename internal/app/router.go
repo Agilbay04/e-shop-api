@@ -25,6 +25,8 @@ func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 	{
 		auth.POST("/register", h.AuthHandler.Register)
 		auth.POST("/login", h.AuthHandler.Login)
+		auth.POST("/forgot-password", h.AuthHandler.ForgotPassword)
+		auth.PUT("/reset-password", h.AuthHandler.ResetPassword)
 
 		// Protected Routes (Common Auth)
 		protected := auth.Group("/")

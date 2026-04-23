@@ -133,6 +133,7 @@ This architecture provides:
 ## Features
 
 - **User Authentication**: Register and login with JWT-based authentication
+- **Forgot/Reset Password**: Password reset via email with Redis token storage (5-min TTL)
 - **Upload File Handling**: Upload file handling with custom options and validation
 - **RBAC**: Role-based access control
 - **Store Management**: Create, update, delete, and activate/deactivate stores
@@ -282,6 +283,8 @@ make clean
 |--------|---------------------------|-----------------------|
 | POST   | /api/v1/auth/register     | Register new user     |
 | POST   | /api/v1/auth/login        | Login user            |
+| POST   | /api/v1/auth/forgot-password | Request password reset |
+| PUT    | /api/v1/auth/reset-password | Reset password with token |
 
 ### Protected Routes (Requires JWT)
 
@@ -338,6 +341,30 @@ Response:
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
   "user": {...}
+}
+```
+
+### Forgot Password
+
+```bash
+POST /api/v1/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+### Reset Password
+
+```bash
+PUT /api/v1/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "uuid-token-from-email",
+  "new_password": "newpassword123",
+  "confirm_password": "newpassword123"
 }
 ```
 

@@ -5,9 +5,11 @@ import (
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -18,12 +20,15 @@ type AuthService interface {
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
 	Profile(user dto.CurrentUser) (dto.UserResponse, error)
 	UploadPicture(req dto.UploadPictureRequest, user dto.CurrentUser) (dto.UserResponse, error)
+	ForgotPassword(req dto.ForgotPasswordRequest) error
+	ResetPassword(req dto.ResetPasswordRequest) error
 }
 
 type authService struct {
 	db            *gorm.DB
 	userRepo      repository.UserRepository
 	userQueryRepo repository.UserQueryRepository
+	notifService  NotificationService
 	rdb           *redis.Client
 }
 
@@ -31,12 +36,14 @@ func NewAuthService(
 	db *gorm.DB,
 	userRepo repository.UserRepository,
 	userQueryRepo repository.UserQueryRepository,
+	notifService NotificationService,
 	rdb *redis.Client,
 ) AuthService {
 	return &authService{
 		db,
 		userRepo,
 		userQueryRepo,
+		notifService,
 		rdb,
 	}
 }
@@ -170,18 +177,18 @@ func (s *authService) UploadPicture(
 	userData.Picture = newPath
 	if err := s.userRepo.Update(tx, userData); err != nil {
 		tx.Rollback()
-		os.Remove(newPath)
+		uploader.DeleteFile(newPath)
 		return dto.UserResponse{}, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		os.Remove(newPath)
+		uploader.DeleteFile(newPath)
 		return dto.UserResponse{}, err
 	}
 
 	if oldPath != "" {
-		os.Remove(oldPath)
+		uploader.DeleteFile(oldPath)
 	}
 
 	return dto.UserResponse{
@@ -193,3 +200,71 @@ func (s *authService) UploadPicture(
 	}, nil
 }
 
+func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {
+    // Check email is registered
+    u, err := s.userQueryRepo.FindByEmail(req.Email)
+    if err != nil {
+        return util.UnprocessableEntityException("Email not found")
+    }
+
+    // Generate new token for reset password
+    token := uuid.New().String()
+    cacheKey := "reset_password:" + token
+
+    // Save token to Redis with TTL 5 minutes
+	ttl := util.GetEnvInt(os.Getenv("REDIS_CACHE_TTL"), 5)
+    err = util.SetCache(s.rdb, cacheKey, u.Email, time.Duration(ttl)*time.Minute)
+    if err != nil {
+        return err
+    }
+
+    // Set email body
+    resetLink := fmt.Sprintf("http://localhost:3000/reset-password?token=%s", token)
+    emailBody := fmt.Sprintf(`
+        <h1>Reset Password Request</h1>
+        <p>Halo %s, we received a request to reset your password.</p>
+        <p>Click the link below or copy and paste it into your browser (link expires in 5 minutes):</p>
+        <a href="%s" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <p>If you did not make this request, please ignore this email.</p>
+    `, u.Username, resetLink)
+
+    // Send reset password email
+	s.notifService.QueueSendEmail(
+		u.Email, 
+		"Reset Password", 
+		emailBody,
+	)
+
+	return nil
+}
+
+func (s *authService) ResetPassword(req dto.ResetPasswordRequest) error {
+    cacheKey := "reset_password:" + req.Token
+
+    // Get email from Redis based on token
+    email, err := util.GetCache[string](s.rdb, cacheKey)
+    if err != nil {
+        return util.UnauthorizedException("Token invalid or expired")
+    }
+
+    // Get data user by email
+    u, err := s.userQueryRepo.FindByEmail(email)
+    if err != nil {
+        return err
+    }
+
+    // Hash new password
+    hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+    u.Password = string(hashedPassword)
+
+    // Update password
+    if err := s.userRepo.Update(s.db, u); err != nil {
+        return err
+    }
+
+    // Delete token and email from Redis
+    _ = util.DeleteCache(s.rdb, cacheKey)
+    _ = util.DeleteCache(s.rdb, "user:email:"+email)
+
+    return nil
+}

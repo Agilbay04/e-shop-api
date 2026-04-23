@@ -6,7 +6,7 @@ import (
 )
 
 type NotificationService interface {
-    SendOrderEmail(to, subject, body string)
+    QueueSendEmail(to, subject, body string)
 }
 
 type notificationService struct{}
@@ -15,7 +15,7 @@ func NewNotificationService() NotificationService {
     return &notificationService{}
 }
 
-func (s *notificationService) SendOrderEmail(to, subject, body string) {
+func (s *notificationService) QueueSendEmail(to, subject, body string) {
     // Use goroutine to send email
     util.SafeGo(func() {
         err := util.SendEmail(to, subject, body)

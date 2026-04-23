@@ -50,8 +50,17 @@ func NewFileUploader(opts ...FileOption) *FileUpload {
 	return uploader
 }
 
+func MakeDir(dir string) (string, error) {
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return dir, err
+	}
+
+	return dir, nil
+}
+
 func (u *FileUpload) UploadFile(file *multipart.FileHeader) (string, error) {
-	if err := os.MkdirAll(u.UploadDir, 0755); err != nil {
+	if _, err := MakeDir(u.UploadDir); err != nil {
 		return "", fmt.Errorf("failed to create upload directory: %v", err)
 	}
 
@@ -73,3 +82,13 @@ func (u *FileUpload) UploadFile(file *multipart.FileHeader) (string, error) {
 	_, err = io.Copy(out, src)
 	return dst, err
 }
+
+func (u *FileUpload) DeleteFile(filePath string) (string, error) {
+	err := os.Remove(filePath)
+	if err != nil {
+		return filePath, err
+	}
+
+	return filePath, nil
+}
+
