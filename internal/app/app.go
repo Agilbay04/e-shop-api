@@ -9,7 +9,7 @@ import (
 )
 
 func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
 
 	// Register json tag name
 	util.RegisterJSONTagName()
