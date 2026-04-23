@@ -48,3 +48,21 @@ func DeleteCacheByPattern(rdb *redis.Client, pattern string) error {
 	}
 	return iter.Err()
 }
+
+func IsRateLimited(rdb *redis.Client, key string, duration time.Duration) bool {
+	ctx := context.Background()
+	
+	// Check if key exists
+	exists, err := rdb.Exists(ctx, key).Result()
+	if err != nil {
+		return false // If redis error, set false
+	}
+
+	if exists > 0 {
+		return true // Limit hit
+	}
+
+	// Set limit
+	rdb.Set(ctx, key, "1", duration)
+	return false
+}

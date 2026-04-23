@@ -10,12 +10,12 @@ import (
 )
 
 func ResponseMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Next()
+	return func(ctx *gin.Context) {
+		ctx.Next()
 
 		// Check if there is any error
-		if len(c.Errors) > 0 {
-			err := c.Errors.Last().Err
+		if len(ctx.Errors) > 0 {
+			err := ctx.Errors.Last().Err
     
 			// Check if err is implement IAppError
 			if appErr, ok := err.(util.IAppError); ok {
@@ -34,23 +34,23 @@ func ResponseMiddleware() gin.HandlerFunc {
 						}
 					}
 
-					handler.RespondError(c, statusCode, customErr.Message, customErr.Errors, "")
+					handler.RespondError(ctx, statusCode, customErr.Message, customErr.Errors, "")
 					return
 				}
 			}
 
 			// Fallback to internal server error
-			handler.RespondError(c, http.StatusInternalServerError, "Internal Server Error", err.Error(), "")
+			handler.RespondError(ctx, http.StatusInternalServerError, "Internal Server Error", err.Error(), "")
 			return
 		}
 
 		// If there is no error get payload
-		if data, exists := c.Get("payload"); exists {
-			message, _ := c.Get("message")
-			isPagination, _ := c.Get("is_pagination")
+		if data, exists := ctx.Get("payload"); exists {
+			message, _ := ctx.Get("message")
+			isPagination, _ := ctx.Get("is_pagination")
     
 			// Get status code, if nil set to 200
-			status, exists := c.Get("status")
+			status, exists := ctx.Get("status")
 			statusCode := http.StatusOK
 			if exists {
 				statusCode = status.(int)
@@ -62,15 +62,15 @@ func ResponseMiddleware() gin.HandlerFunc {
 			}
 
 			if isPagination == true {
-				total, _ := c.Get("total_data")
-        		filter, _ := c.Get("pagination_filter")
+				total, _ := ctx.Get("total_data")
+        		filter, _ := ctx.Get("pagination_filter")
         		f := filter.(dto.PaginationParam)
         
-        		handler.RespondPagination(c, data, total.(int64), f.Page, f.Limit, message.(string))
+        		handler.RespondPagination(ctx, data, total.(int64), f.Page, f.Limit, message.(string))
         		return
 			}
 
-			handler.RespondSuccess(c, statusCode, msgString, data)
+			handler.RespondSuccess(ctx, statusCode, msgString, data)
 		}
 	}
 }

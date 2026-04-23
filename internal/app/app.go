@@ -28,7 +28,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	handlerRegistry := NewHandlerRegistry(svcRegistry)
 
 	// Register routes
-	RegisterRoutes(r, handlerRegistry, middlewareRegistry)
+	RegisterRoutes(r, handlerRegistry, middlewareRegistry, rdb)
 
 	return r
 }

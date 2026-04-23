@@ -148,6 +148,7 @@ This architecture provides:
 - **Transaction Support**: Database transactions for data integrity
 - **Database Pooling**: Database connection pooling for improved performance
 - **Redis Caching**: Redis caching for improved performance
+- **Rate Limiting**: Request rate limiting using Redis (5 req/5s for login, 1 req/1min for forgot-password)
 
 ## Getting Started
 
@@ -279,12 +280,12 @@ make clean
 
 ### Public Routes
 
-| Method | Endpoint                  | Description           |
-|--------|---------------------------|-----------------------|
-| POST   | /api/v1/auth/register     | Register new user     |
-| POST   | /api/v1/auth/login        | Login user            |
-| POST   | /api/v1/auth/forgot-password | Request password reset |
-| PUT    | /api/v1/auth/reset-password | Reset password with token |
+| Method | Endpoint                     | Description               |
+|--------|------------------------------|---------------------------|
+| POST   | /api/v1/auth/register        | Register new user         |
+| POST   | /api/v1/auth/login           | Login user                |
+| POST   | /api/v1/auth/forgot-password | Request password reset    |
+| PUT    | /api/v1/auth/reset-password  | Reset password with token |
 
 ### Protected Routes (Requires JWT)
 

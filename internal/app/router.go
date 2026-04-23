@@ -1,12 +1,18 @@
 package app
 
-import "github.com/gin-gonic/gin"
+import (
+	"e-shop-api/internal/middleware"
+	"time"
 
-func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry) {
+	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+)
+
+func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry, rdb *redis.Client) {
 	api := r.Group("/api/v1")
 	{
 		// Auth Routes (Public)
-		registerAuthRoutes(api, h, m)
+		registerAuthRoutes(api, h, m, rdb)
 
 		// Protected Routes (Common Auth)
 		protected := api.Group("/")
@@ -20,12 +26,21 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry) {
 }
 
 // Sub Routes
-func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry) {
+func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry, rdb *redis.Client) {
 	auth := api.Group("/auth")
 	{
 		auth.POST("/register", h.AuthHandler.Register)
-		auth.POST("/login", h.AuthHandler.Login)
-		auth.POST("/forgot-password", h.AuthHandler.ForgotPassword)
+		
+		auth.POST("/login", 
+			middleware.RateLimiter(rdb, "login", 5*time.Second),
+			h.AuthHandler.Login,
+		)
+		
+		auth.POST("/forgot-password", 
+			middleware.RateLimiter(rdb, "forgot-password", 1*time.Minute), 
+			h.AuthHandler.ForgotPassword,
+		)
+
 		auth.PUT("/reset-password", h.AuthHandler.ResetPassword)
 
 		// Protected Routes (Common Auth)

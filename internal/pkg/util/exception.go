@@ -43,3 +43,7 @@ func InternalServerErrorException(message string) *CustomError {
 func ForbiddenException(message string) *CustomError {
     return &CustomError{StatusCode: http.StatusForbidden, Message: message}
 }
+
+func ToManyRequestException(message string) *CustomError {
+	return &CustomError{StatusCode: http.StatusTooManyRequests, Message: message}
+}
