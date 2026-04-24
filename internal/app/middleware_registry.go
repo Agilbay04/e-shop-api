@@ -10,10 +10,11 @@ import (
 )
 
 type MiddlewareRegistry struct {
-    Auth gin.HandlerFunc
-	Admin gin.HandlerFunc
-	Seller gin.HandlerFunc
-	Buyer gin.HandlerFunc
+    Auth      gin.HandlerFunc
+	Admin     gin.HandlerFunc
+	Seller    gin.HandlerFunc
+	Buyer     gin.HandlerFunc
+	RequestID gin.HandlerFunc
 }
 
 func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
@@ -34,9 +35,10 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 
 	// Selective Middlewares
 	return &MiddlewareRegistry{
-        Auth: middleware.AuthMiddleware(),
-		Admin: middleware.RoleMiddleware(model.Admin),
-		Seller: middleware.RoleMiddleware(model.Seller, model.Admin),
-		Buyer: middleware.RoleMiddleware(model.Buyer),
+        Auth:      middleware.AuthMiddleware(),
+		Admin:     middleware.RoleMiddleware(model.Admin),
+		Seller:    middleware.RoleMiddleware(model.Seller, model.Admin),
+		Buyer:     middleware.RoleMiddleware(model.Buyer),
+		RequestID: middleware.RequestID(),
     }
 }

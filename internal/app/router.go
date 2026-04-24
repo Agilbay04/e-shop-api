@@ -9,6 +9,13 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry, rdb *redis.Client) {
+	// Health routes (no auth required)
+	r.GET("/health", h.HealthHandler.Health)
+	r.GET("/ready", h.HealthHandler.Readiness)
+
+	// Request ID middleware
+	r.Use(m.RequestID)
+
 	api := r.Group("/api/v1")
 	{
 		// Auth Routes (Public)
