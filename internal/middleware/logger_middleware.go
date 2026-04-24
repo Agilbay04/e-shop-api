@@ -13,6 +13,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 		start := time.Now()
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
+		requestID, _ := c.Get(RequestIDKey)
 
 		// Process request
 		c.Next()
@@ -23,6 +24,7 @@ func LoggerMiddleware() gin.HandlerFunc {
 
 		// Logging HTTP request
 		logger.L.Info("HTTP Request",
+			zap.String("request_id", requestID.(string)),
 			zap.Int("status", status),
 			zap.String("method", c.Request.Method),
 			zap.String("path", path),

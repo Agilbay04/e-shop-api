@@ -28,6 +28,7 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 
 	// Global Middleware
 	// Note: please don't change the order
+	app.Use(middleware.RequestID()) // Request ID - must be first for logging
 	app.Use(middleware.LoggerMiddleware()) // Logging HTTP request
 	app.Use(gin.Recovery()) // Recover from panic
 	app.Use(middleware.InitCORS()) // CORS middleware
