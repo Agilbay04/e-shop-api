@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"e-shop-api/internal/pkg/logger"
+	"e-shop-api/internal/pkg/util"
 	"fmt"
 	"os"
 
@@ -17,12 +18,18 @@ func ConnectRedis() *redis.Client {
 		DB:       0,                          
 	})
 
-	// Test connection
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
+	// Retries to connect to redis
+	err := util.AutoRetry(func() error {
+        return rdb.Ping(context.Background()).Err()
+    })
+
+	// Return error if failed connect to redis after retries
+	if err != nil {
 		logger.L.Fatal("Failed connect to Redis:", zap.Error(err))
 		panic(fmt.Sprintf("Failed connect to Redis: %v", err))
 	}
 
+	// Success connect to redis
 	logger.L.Info("Connected to Redis!")
 	return rdb
 }

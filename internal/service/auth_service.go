@@ -6,8 +6,6 @@ import (
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
 	"fmt"
-	"os"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -104,8 +102,8 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
         }
 
         // Set data to Redis
-		ttl := util.GetEnvInt(os.Getenv("REDIS_CACHE_TTL"), 5)
-        _ = util.SetCache(s.rdb, cacheKey, u, time.Duration(ttl)*time.Minute)
+		ttl := util.GetEnvTime("REDIS_CACHE_TTL", "5m")
+        _ = util.SetCache(s.rdb, cacheKey, u, ttl)
     }
 
     // Validate password
@@ -115,7 +113,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
     }
 
     // Generate token
-    token, err := util.GenerateToken(u.ID, u.Username, u.Email, u.Picture, u.Role)
+    token, err := util.GenerateToken(u.ID.String(), u.Username, u.Email, u.Picture, u.Role)
     if err != nil {
         return dto.LoginResponse{}, util.UnauthorizedException("Token is invalid or expired")
     }
@@ -133,7 +131,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 
 func (s *authService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {
 	return dto.UserResponse{
-		ID:       user.ID.String(),
+		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
 		Role:     user.Role,
@@ -160,7 +158,7 @@ func (s *authService) UploadPicture(
 		util.WithExtensions([]string{".jpg", ".jpeg", ".png", ".webp"}),
 	)
 
-	userData, err := s.userQueryRepo.FindByID(user.ID.String())
+	userData, err := s.userQueryRepo.FindByID(user.ID)
 	if err != nil {
 		tx.Rollback()
 		return dto.UserResponse{}, err;
@@ -212,8 +210,8 @@ func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {
     cacheKey := "reset_password:" + token
 
     // Save token to Redis with TTL 5 minutes
-	ttl := util.GetEnvInt(os.Getenv("REDIS_CACHE_TTL"), 5)
-    err = util.SetCache(s.rdb, cacheKey, u.Email, time.Duration(ttl)*time.Minute)
+	ttl := util.GetEnvTime("REDIS_CACHE_TTL", "5m")
+    err = util.SetCache(s.rdb, cacheKey, u.Email, ttl)
     if err != nil {
         return err
     }

@@ -4,6 +4,7 @@ import (
 	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/util"
 
+	"github.com/sony/gobreaker"
 	"go.uber.org/zap"
 )
 
@@ -11,19 +12,42 @@ type NotificationService interface {
     QueueSendEmail(to, subject, body string)
 }
 
-type notificationService struct{}
+type notificationService struct {
+	emailBreaker *gobreaker.CircuitBreaker
+}
 
 func NewNotificationService() NotificationService {
-    return &notificationService{}
+    return &notificationService{
+		emailBreaker: util.NewCircuitBreaker("Email-Notification"),
+	}
 }
 
 func (s *notificationService) QueueSendEmail(to, subject, body string) {
+	// Run in goroutine
 	util.SafeGo(func() {
-		err := util.SendEmail(to, subject, body)
+		// Send email with auto retry
+		_, err := s.emailBreaker.Execute(func() (interface{}, error) {
+			return nil, util.AutoRetry(func() error {
+				return util.SendEmail(to, subject, body)
+			})
+		})
+
 		if err != nil {
-			logger.L.Info("[Email Error] Failed to send", zap.String("to", to), zap.Error(err))
+			// Check if circuit breaker is open
+			if err == gobreaker.ErrOpenState {
+				logger.L.Warn("[Email Breaker] Circuit is OPEN, skipping send", 
+					zap.String("to", to))
+				return
+			}
+			
+			// Log error send email after fail all retry
+			logger.L.Info("[Email Error] Failed to send", 
+				zap.String("to", to), 
+				zap.Error(err))
 			return
 		}
+
+		// Log success send email
 		logger.L.Info("[Email Success] Sent", zap.String("to", to))
 	})
 }

@@ -7,6 +7,7 @@ import (
 	"e-shop-api/internal/repository"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -53,7 +54,7 @@ func (s *productService) CreateProduct(
 		}
 	}()
 
-	userStore, err := s.storeQueryRepo.FindByUserID(user.ID.String())
+	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
 		return dto.ProductResponse{},
@@ -68,8 +69,8 @@ func (s *productService) CreateProduct(
 		Stock:       *req.Stock,
 		Unit:        req.Unit,
 		Base: model.Base{
-			CreatedBy: user.ID,
-			UpdatedBy: user.ID,
+			CreatedBy: uuid.MustParse(user.ID),
+			UpdatedBy: uuid.MustParse(user.ID),
 		},
 	}
 
@@ -101,7 +102,7 @@ func (s *productService) CreateProduct(
 
 func (s *productService) GetPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error) {
 	if user.Role == model.Seller {
-		userStore, err := s.storeQueryRepo.FindByUserID(user.ID.String())
+		userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -146,7 +147,7 @@ func (s *productService) UpdateProduct(
 		return dto.ProductResponse{}, util.NotFoundException("Product not found")
 	}
 
-	userStore, err := s.storeQueryRepo.FindByUserID(user.ID.String())
+	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
 		return dto.ProductResponse{}, util.ForbiddenException("User doesn't have a store")
@@ -173,7 +174,7 @@ func (s *productService) UpdateProduct(
 		product.Unit = *req.Unit
 	}
 
-	product.UpdatedBy = user.ID
+	product.UpdatedBy = uuid.MustParse(user.ID)
 
 	if err := s.productRepo.Update(tx, product); err != nil {
 		tx.Rollback()
@@ -221,7 +222,7 @@ func (s *productService) DeleteProduct(
 			util.NotFoundException("Product not found")
 	}
 
-	userStore, err := s.storeQueryRepo.FindByUserID(user.ID.String())
+	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
 		return dto.ProductResponse{},
@@ -234,7 +235,7 @@ func (s *productService) DeleteProduct(
 			util.ForbiddenException("You don't have permission to delete this product")
 	}
 
-	product.UpdatedBy = user.ID
+	product.UpdatedBy = uuid.MustParse(user.ID)
 	product.DeletedAt = gorm.DeletedAt{
 		Time:  time.Now(),
 		Valid: true,
@@ -297,7 +298,7 @@ func (s *productService) ActivateProduct(
 			util.BadRequestException("Product is already "+status, nil)
 	}
 
-	userStore, err := s.storeQueryRepo.FindByUserID(user.ID.String())
+	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
 		return dto.ProductResponse{},
@@ -310,7 +311,7 @@ func (s *productService) ActivateProduct(
 			util.ForbiddenException("You don't have permission to activate/deactivate this product")
 	}
 
-	product.UpdatedBy = user.ID
+	product.UpdatedBy = uuid.MustParse(user.ID)
 	product.IsActive = *req.IsActive
 
 	if err := s.productRepo.Update(tx, product); err != nil {

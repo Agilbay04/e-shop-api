@@ -8,7 +8,6 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
@@ -46,12 +45,23 @@ func main() {
 
     // Run server in goroutine
     go func() {
-		logger.L.Info("Server starting on http://localhost:" + port, zap.String("port", port))
-        if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-            logger.L.Fatal("Listen error: %v", zap.Error(err))
+		useHTTPS := util.GetEnvBool("USE_HTTPS", "false")
+        cert := os.Getenv("SSL_CERT_PATH")
+        key := os.Getenv("SSL_KEY_PATH")
+
+        if useHTTPS && cert != "" && key != "" {
+            logger.L.Info("Server e-shop-api starting on https://localhost:"+port, zap.String("port", port))
+            if err := srv.ListenAndServeTLS(cert, key); err != nil && !errors.Is(err, http.ErrServerClosed) {
+                logger.L.Fatal("HTTPS Listen error", zap.Error(err))
+            }
+        } else {
+            logger.L.Info("Server e-shop-api starting on http://localhost:"+port, zap.String("port", port))
+            if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+                logger.L.Fatal("HTTP Listen error", zap.Error(err))
+            }
         }
     }()
 
     // Graceful shutdown
-    util.GracefulShutdown(srv, db, rdb, 5*time.Second)
+    util.GracefulShutdown(srv, db, rdb, util.TimeParse("5s"))
 }

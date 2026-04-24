@@ -7,6 +7,7 @@ import (
 	"e-shop-api/internal/repository"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -60,7 +61,7 @@ func (s *storeService) CreateStore(
 		return dto.CreateStoreResponse{}, util.UnauthorizedException("User is not a seller")
 	}
 
-	existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID.String())
+	existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID)
 
 	if err == nil && existingStore != nil {
 		tx.Rollback()
@@ -70,10 +71,10 @@ func (s *storeService) CreateStore(
 	store := &model.Store{
 		Name:        req.Name,
 		Description: req.Description,
-		UserID:      req.UserID,
+		UserID:      uuid.MustParse(req.UserID),
 		Base: model.Base{
-			CreatedBy: user.ID,
-			UpdatedBy: user.ID,
+			CreatedBy: uuid.MustParse(user.ID),
+			UpdatedBy: uuid.MustParse(user.ID),
 		},
 	}
 
@@ -100,13 +101,13 @@ func (s *storeService) GetStores(
 	user dto.CurrentUser,
 ) ([]dto.StoreResponse, int64, error) {
 	if user.Role == model.Seller {
-		userStore, _ := s.storeQueryRepo.FindByUserID(user.ID.String())
+		userStore, _ := s.storeQueryRepo.FindByUserID(user.ID)
 
 		if userStore == nil {
 			return []dto.StoreResponse{}, 0, nil
 		}
 
-		userID := user.ID.String()
+		userID := user.ID
 		req.UserID = &userID
 	}
 
@@ -133,7 +134,7 @@ func (s *storeService) UpdateStore(
 		return dto.StoreResponse{}, util.NotFoundException("Store not found")
 	}
 
-	if store.UserID != user.ID {
+	if store.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.StoreResponse{}, util.ForbiddenException("You don't have permission to update this store")
 	}
@@ -145,7 +146,7 @@ func (s *storeService) UpdateStore(
 		store.Description = *req.Description
 	}
 
-	store.UpdatedBy = user.ID
+	store.UpdatedBy = uuid.MustParse(user.ID)
 
 	if err := s.storeRepo.Update(tx, store); err != nil {
 		tx.Rollback()
@@ -193,7 +194,7 @@ func (s *storeService) ActivateStore(
 		return dto.StoreResponse{}, util.NotFoundException("Store not found")
 	}
 
-	if store.UserID != user.ID {
+	if store.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.StoreResponse{}, util.ForbiddenException("You don't have permission to activate/deactivate this store")
 	}
@@ -219,7 +220,7 @@ func (s *storeService) ActivateStore(
 		}
 	}
 
-	store.UpdatedBy = user.ID
+	store.UpdatedBy = uuid.MustParse(user.ID)
 	store.IsActive = req.IsActive
 
 	if err := s.storeRepo.Update(tx, store); err != nil {
@@ -268,7 +269,7 @@ func (s *storeService) DeleteStore(
 		return dto.StoreResponse{}, util.NotFoundException("Store not found")
 	}
 
-	if store.UserID != user.ID {
+	if store.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.StoreResponse{}, util.ForbiddenException("You don't have permission to delete this store")
 	}
@@ -283,7 +284,7 @@ func (s *storeService) DeleteStore(
 		return dto.StoreResponse{}, util.BadRequestException("Cannot delete store with draft or pending order items", nil)
 	}
 
-	store.UpdatedBy = user.ID
+	store.UpdatedBy = uuid.MustParse(user.ID)
 	store.DeletedAt = gorm.DeletedAt{
 		Time:  time.Now(),
 		Valid: true,

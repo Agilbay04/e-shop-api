@@ -107,7 +107,7 @@ func (o *orderService) CreateOrder(
 
 	return dto.OrderResponse{
 		ID:         newOrder.ID.String(),
-		UserID:     user.ID.String(),
+		UserID:     user.ID,
 		Username:   user.Username,
 		GrandTotal: totalOrderPrice,
 		Status:     newOrder.Status,
@@ -146,7 +146,7 @@ func (o *orderService) prepareOrderData(
 		total += subTotal
 
 		items = append(items, model.OrderItem{
-			Base:      model.Base{CreatedBy: user.ID},
+			Base:      model.Base{CreatedBy: uuid.MustParse(user.ID)},
 			StoreID:   product.StoreID,
 			ProductID: product.ID,
 			Quantity:  reqItem.Quantity,
@@ -178,13 +178,13 @@ func (o *orderService) prepareOrderData(
 
 func (o *orderService) saveOrder(
 	tx *gorm.DB,
-	userID uuid.UUID,
+	userID string,
 	total int,
 	status model.OrderStatus,
 ) (*model.Order, error) {
 	newOrder := &model.Order{
-		Base:       model.Base{CreatedBy: userID},
-		UserID:     userID,
+		Base:       model.Base{CreatedBy: uuid.MustParse(userID)},
+		UserID:     uuid.MustParse(userID),
 		GrandTotal: total,
 		Status:     status,
 	}
@@ -231,7 +231,7 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 	}
 
 	// Validate only admin or order creator can update order
-	if user.Role != model.Admin && order.UserID != user.ID {
+	if user.Role != model.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.ForbiddenException("You are not authorized to update this order")
@@ -298,9 +298,9 @@ func (s *orderService) GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) 
 
 	switch user.Role {
 		case model.Buyer:
-			userID = user.ID.String()
+			userID = user.ID
 		case model.Seller:
-			userStore, err := s.storeQueryRepo.FindByUserID(user.ID.String())
+			userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil || userStore == nil {
 			return []dto.OrderResponse{}, 0, nil
 		}
@@ -332,7 +332,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	}
 
 	// Validate only admin or order creator can cancel order
-	if user.Role != model.Admin && order.UserID != user.ID {
+	if user.Role != model.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.ForbiddenException("You are not authorized to cancel this order")
@@ -350,7 +350,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 
 	// Update Order Status
 	order.Status = model.Cancelled
-	order.UpdatedBy = user.ID
+	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
 		return dto.OrderResponse{}, err
@@ -420,7 +420,7 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 	}
 
 	// Validate only admin or order creator can confirm order
-	if user.Role != model.Admin && order.UserID != user.ID {
+	if user.Role != model.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.ForbiddenException("You are not authorized to cancel this order")
@@ -437,7 +437,7 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 
 	// Update Order Status
 	order.Status = model.Paid
-	order.UpdatedBy = user.ID
+	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
 		return dto.OrderResponse{}, err

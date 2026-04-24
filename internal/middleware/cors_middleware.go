@@ -16,7 +16,7 @@ func InitCORS() gin.HandlerFunc {
 
 	if originsConfig == "" {
 		// Default allowed origins
-		allowedOrigins = []string{"http://localhost:8001"}
+		allowedOrigins = []string{"http://localhost:8001", "https://localhost:8001", "http://localhost:5500"}
 	} else {
 		allowedOrigins = strings.Split(originsConfig, ",")
 	}

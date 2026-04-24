@@ -8,7 +8,7 @@ import (
 
 func SeedProducts(db *gorm.DB) error {
 	var store model.Store
-	// Cari toko yang sudah dibuat sebelumnya
+	// Find the store that was created previously
 	err := db.First(&store).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

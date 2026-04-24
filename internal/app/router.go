@@ -2,7 +2,7 @@ package app
 
 import (
 	"e-shop-api/internal/middleware"
-	"time"
+	"e-shop-api/internal/pkg/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -32,12 +32,12 @@ func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 		auth.POST("/register", h.AuthHandler.Register)
 		
 		auth.POST("/login", 
-			middleware.RateLimiter(rdb, "login", 5*time.Second),
+			middleware.RateLimiter(rdb, "login", util.TimeParse("5s")),
 			h.AuthHandler.Login,
 		)
 		
 		auth.POST("/forgot-password", 
-			middleware.RateLimiter(rdb, "forgot-password", 1*time.Minute), 
+			middleware.RateLimiter(rdb, "forgot-password", util.TimeParse("1m")), 
 			h.AuthHandler.ForgotPassword,
 		)
 

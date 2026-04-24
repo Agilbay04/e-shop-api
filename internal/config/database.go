@@ -5,7 +5,6 @@ import (
 	"e-shop-api/internal/pkg/util"
 	"fmt"
 	"os"
-	"time"
 
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
@@ -21,15 +20,36 @@ func ConnectDatabase() *gorm.DB {
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
 		host, user, password, dbName, port)
-	
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	var db *gorm.DB
+	var err error
+
+	// Retries to connect to database
+	err = util.AutoRetry(func() error {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+        if err != nil {
+            return err
+        }
+        
+        // Verify database connection by pinging
+        sqlDB, err := db.DB()
+        if err != nil {
+            return err
+        }
+        return sqlDB.Ping()
+
+	})
+
+	// Return error if failed connect to database after retries
 	if err != nil {
-		logger.L.Fatal("Failed to connect to database:", zap.Error(err))
-		panic("Failed to connect to database!")
+		logger.L.Fatal("Failed connect to database:", zap.Error(err))
+		panic(fmt.Sprintf("Failed connect to database: %v", err))
 	}
 
+	// Setup database pooling
 	setupDatabasePooling(db)
 
+	// Success connect to database
 	logger.L.Info("Connected to database!")
 	return db
 }
@@ -41,13 +61,13 @@ func setupDatabasePooling(db *gorm.DB) {
 		panic("Failed to setup database pooling!")
 	}
 
-	maxIdle := util.GetEnvInt("DB_MAX_IDLE_CONNS", 10)
-	maxOpen := util.GetEnvInt("DB_MAX_OPEN_CONNS", 100)
-	maxLifetimeMinutes := util.GetEnvInt("DB_CONN_MAX_LIFETIME", 60)
-	maxIdleMinutes := util.GetEnvInt("DB_CONN_MAX_IDLETIME", 15)
+	maxIdle := util.GetEnvInt("DB_MAX_IDLE_CONNS", "10")
+	maxOpen := util.GetEnvInt("DB_MAX_OPEN_CONNS", "100")
+	maxLifetimeMinutes := util.GetEnvTime("DB_CONN_MAX_LIFETIME", "60m")
+	maxIdleMinutes := util.GetEnvTime("DB_CONN_MAX_IDLETIME", "15m")
 
 	sqlDB.SetMaxIdleConns(maxIdle)
 	sqlDB.SetMaxOpenConns(maxOpen)
-	sqlDB.SetConnMaxLifetime(time.Duration(maxLifetimeMinutes) * time.Minute)
-	sqlDB.SetConnMaxIdleTime(time.Duration(maxIdleMinutes) * time.Minute)
+	sqlDB.SetConnMaxLifetime(maxLifetimeMinutes)
+	sqlDB.SetConnMaxIdleTime(maxIdleMinutes)
 }

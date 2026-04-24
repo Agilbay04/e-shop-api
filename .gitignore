@@ -32,3 +32,6 @@ vendor/
 
 # Static files
 uploads/
+
+# Cert *.pem
+*.pem

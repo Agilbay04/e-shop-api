@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 type CustomClaims struct {
-	ID       uuid.UUID 		`json:"id"`
+	ID       string 		`json:"id"`
 	Username string    		`json:"username"`
 	Email    string    		`json:"email"`
 	Role     model.UserRole	`json:"role"`
@@ -19,9 +18,9 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(id uuid.UUID, username, email, picture string, role model.UserRole) (string, error) {
+func GenerateToken(id, username, email, picture string, role model.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvInt(os.Getenv("JWT_TTL"), 3600)
+	ttl := GetEnvTime("JWT_TTL", "3600s")
 
 	claims := CustomClaims{
 		ID:       id,
@@ -30,7 +29,7 @@ func GenerateToken(id uuid.UUID, username, email, picture string, role model.Use
 		Role:     role,
 		Picture:  picture,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(ttl) * time.Second)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

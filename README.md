@@ -11,7 +11,8 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 - **ORM**: GORM
 - **Migrations**: gormigrate
 - **Authentication**: JWT (golang-jwt/jwt)
-- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, redis, bcrypt (via golang.org/x/crypto), zap
+- **Utilities**: godotenv, uuid, air, gorm, golangcli-lint, redis, bcrypt (via golang.org/x/crypto), zap, gobreaker
+- **HTTPS/TLS**: SSL certificate support for secure HTTPS connections
 
 ## Project Structure
 
@@ -67,8 +68,8 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 |   - Input validation & binding                              |
 |   - Calls services, returns formatted responses             |
 +-------------------------------------------------------------+
-                          | ^
-                          v |
+                            | ^
+                            v |
 +-------------------------------------------------------------+
 |                      Service Layer                          |
 |                     (internal/service)                      |
@@ -76,8 +77,8 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 |   - Transaction management (Begin/Commit/Rollback)          |
 |   - Depends on repository interfaces                        |
 +-------------------------------------------------------------+
-                          | ^
-                          v |
+                            | ^
+                            v |
 +-------------------------------------------------------------+
 |                    Repository Layer                         |
 |                    (internal/repository)                    |
@@ -149,6 +150,9 @@ This architecture provides:
 - **Database Pooling**: Database connection pooling for improved performance
 - **Redis Caching**: Redis caching for improved performance
 - **Rate Limiting**: Request rate limiting using Redis (5 req/5s for login, 1 req/1min for forgot-password)
+- **Circuit Breaker**: Circuit breaker pattern using gobreaker to handle external service failures gracefully
+- **Auto Retry**: Automatic retry mechanism with configurable attempts and delay
+- **HTTPS Support**: TLS/SSL support for secure HTTPS connections
 - **Graceful Shutdown**: Graceful shutdown handling for server, DB, and Redis connections
 - **Logging**: Structured logging with Zap
 
@@ -156,7 +160,7 @@ This architecture provides:
 
 This project uses **Zap** for structured logging. The logger is configured in `internal/pkg/logger/logger.go`.
 
-### Initialization
+### Initialization Logging
 
 ```go
 func main() {
@@ -166,7 +170,7 @@ func main() {
 }
 ```
 
-### Usage
+### Usage Logging
 
 The logger exposes two aliases: `logger.Log` and `logger.L` (shorter syntax).
 
@@ -200,7 +204,82 @@ logger.L.Warn("Rate limit exceeded", zap.String("ip", clientIP))
 ### Output Format
 
 - **Development mode** (`APP_ENV=development`): Console output with colors
-- **Production mode**: JSON output for log aggregation
+- **Production mode** (`APP_ENV=production`): JSON output for log aggregation
+
+## Circuit Breaker
+
+This project uses **gobreaker** (from sony/gobreaker) for circuit breaker pattern and auto-retry mechanism. The utility is configured in `internal/pkg/util/circuit_breaker.go`.
+
+### Initialization Circuit Breaker
+
+```go
+import (
+    "e-shop-api/internal/pkg/util"
+)
+
+// Create a circuit breaker
+cb := util.NewCircuitBreaker("order-service")
+```
+
+### Usage Circuit Breaker
+
+```go
+// Circuit breaker usage
+result, err := cb.Execute(func() (interface{}, error) {
+    return orderService.CreateOrder(req, user)
+})
+if err != nil {
+    if cb.IsStateOpen() {
+        logger.L.Error("Circuit breaker is open, service unavailable")
+    }
+    return dto.OrderResponse{}, err
+}
+```
+
+### Auto Retry
+
+```go
+// Auto retry with automatic function name detection
+err := util.AutoRetry(func() error {
+    return externalAPI.Call()
+})
+```
+
+### Manual Retry Helper
+
+```go
+// Manual retry with custom function name
+err := util.RetryHelper("create-order", 3, 2*time.Second, func() error {
+    return orderService.CreateOrder(req, user)
+})
+```
+
+### Configuration
+
+Circuit breaker and retry can be configured via environment variables:
+
+| Variable            | Default      | Description                                                           |
+|---------------------|--------------|-----------------------------------------------------------------------|
+| `CB_MAX_REQUESTS`   | 3            | Maximum requests allowed when circuit is half-open                    |
+| `CB_INTERVAL`       | 5s (second)  | Period the circuit will stay open before testing if fault is resolved |
+| `CB_TIMEOUT`        | 30s (second) | Time the circuit stays open before attempting to close                |
+| `CB_THRESHOLD`      | 3            | Number of consecutive failures to trigger circuit open                |
+| `RETRY_ATTEMPTS`    | 3            | Number of retry attempts                                              |
+| `RETRY_DELAY`       | 2s (second)  | Delay between retry attempts                                          |
+
+### State Change Logging
+
+The circuit breaker logs state changes:
+
+```code
+WARN - Circuit Breaker State Change name=order-service from=closed to=open
+```
+
+**States:**
+
+- **Closed**: Normal operation, requests pass through
+- **Open**: Service unavailable, requests fail fast
+- **Half-Open**: Testing if service recovered
 
 ## Getting Started
 
@@ -212,6 +291,7 @@ logger.L.Warn("Rate limit exceeded", zap.String("ip", clientIP))
 - `air` for hot reloading (`go install github.com/air-verse/air@latest`)
 - `golangci-lint` for linting (`curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.4`)
 - `redis` for caching (`go get github.com/redis/go-redis/v9`)
+- SSL certificates (for HTTPS, optional)
 
 ### 1. Clone and Setup
 
@@ -229,26 +309,30 @@ Edit `.env` with your database and application settings:
 
 ```env
 # APP
-SERVER_PORT=<server_port>
-APP_ENV=development
+SERVER_PORT="<http_port>"
+HTTPS_PORT="<https_port>"
+SSL_CERT_PATH="<cert>.pem"
+SSL_KEY_PATH="<cert>-key.pem"
+APP_ENV="development"
+USE_HTTPS=true
 
 # DB
-DB_HOST=localhost
+DB_HOST=127.0.0.1
 DB_USER=<db_username>
 DB_PASSWORD=<db_password>
 DB_NAME=<db_name>
 DB_PORT=<db_port>
 DB_MAX_IDLE_CONNS=10
 DB_MAX_OPEN_CONNS=100
-DB_CONN_MAX_LIFETIME=60 #minutes
-DB_CONN_MAX_IDLETIME=15 #minutes
+DB_CONN_MAX_LIFETIME="60m" #minutes
+DB_CONN_MAX_IDLETIME="15m" #minutes
 
 # JWT
 JWT_SECRET_KEY=<jwt_secret_key>
-JWT_TTL=3600 #seconds
+JWT_TTL="3600s" #seconds
 
 # SMTP EMAIL
-SMTP_HOST=localhost
+SMTP_HOST=127.0.0.1
 SMTP_PORT=1025
 SMTP_SENDER_NAME="E-Shop Admin"
 SMTP_AUTH_EMAIL=<auth_email>
@@ -258,13 +342,21 @@ SMTP_AUTH_PASSWORD=<auth_password>
 TRUSTED_PROXIES=127.0.0.1
 
 # CORS
-CORS_ALLOWED_ORIGINS=http://127.0.0.1:8001,http://127.0.0.1:5500
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:8001,https://127.0.0.1:8001,http://127.0.0.1:5500
 
 # REDIS
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=
-REDIS_CACHE_TTL=5 #minutes
+REDIS_CACHE_TTL="5m" #minutes
+
+# CIRCUIT BREAKER
+CB_MAX_REQUESTS=3
+CB_INTERVAL="5s" #second
+CB_TIMEOUT="30s" #second
+CB_THRESHOLD=3
+RETRY_ATTEMPTS=3
+RETRY_DELAY="2s" #second
 ```
 
 ### 3. Start Database
@@ -307,7 +399,7 @@ make run
 make dev
 ```
 
-The server will start on `http://localhost:8001` (or the port specified in `.env`).
+The server will start on `http://localhost:8001` if `USE_HTTPS` is set to `true` in `.env` server will start on `https://localhost:8001` (or the port specified in `.env`).
 > **Note:** Before using command `make dev` you need to install `air` with `go install github.com/air-verse/air@latest`, then run command `air init`, and update `.air.toml` file with your configuration.
 
 ### 7. Linting (Run golangci-lint)
