@@ -62,8 +62,8 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 
 ```diagram
 +-------------------------------------------------------------+
-|                      Handler Layer                          |
-|                     (internal/handler)                      |
+|                       Handler Layer                         |
+|                    (internal/handler)                       |
 |   - HTTP request/response handling                          |
 |   - Input validation & binding                              |
 |   - Calls services, returns formatted responses             |
@@ -71,8 +71,8 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
                             | ^
                             v |
 +-------------------------------------------------------------+
-|                      Service Layer                          |
-|                     (internal/service)                      |
+|                       Service Layer                         |
+|                    (internal/service)                       |
 |   - Business logic & orchestration                          |
 |   - Transaction management (Begin/Commit/Rollback)          |
 |   - Depends on repository interfaces                        |
@@ -80,8 +80,8 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
                             | ^
                             v |
 +-------------------------------------------------------------+
-|                    Repository Layer                         |
-|                    (internal/repository)                    |
+|                      Repository Layer                       |
+|                   (internal/repository)                     |
 |   - *Repository: Write operations (Create, Update)          |
 |   - *QueryRepository: Read operations (Find, List)          |
 |   - Database operations via GORM                            |
