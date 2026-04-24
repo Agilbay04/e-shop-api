@@ -2,6 +2,7 @@ package config
 
 import (
 	"e-shop-api/internal/pkg/logger"
+	"e-shop-api/internal/pkg/querytracker"
 	"e-shop-api/internal/pkg/util"
 	"fmt"
 	"os"
@@ -48,6 +49,11 @@ func ConnectDatabase() *gorm.DB {
 
 	// Setup database pooling
 	setupDatabasePooling(db)
+
+	// Register slow query tracker for tracking query and slow query
+	if err := querytracker.Register(db); err != nil {
+		logger.L.Warn("Failed to register slow query plugin:", zap.Error(err))
+	}
 
 	// Success connect to database
 	logger.L.Info("Connected to database!")

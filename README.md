@@ -151,6 +151,7 @@ This architecture provides:
 - **Redis Caching**: Redis caching for improved performance
 - **Rate Limiting**: Request rate limiting using Redis (5 req/5s for login, 1 req/1min for forgot-password)
 - **Circuit Breaker**: Circuit breaker pattern using gobreaker to handle external service failures gracefully
+- **Slow Query Tracker**: Track and log all database queries with execution timing (configurable threshold)
 - **Auto Retry**: Automatic retry mechanism with configurable attempts and delay
 - **HTTPS Support**: TLS/SSL support for secure HTTPS connections
 - **Graceful Shutdown**: Graceful shutdown handling for server, DB, and Redis connections
@@ -281,6 +282,36 @@ WARN - Circuit Breaker State Change name=order-service from=closed to=open
 - **Open**: Service unavailable, requests fail fast
 - **Half-Open**: Testing if service recovered
 
+## Slow Query Tracker
+
+This project uses a GORM plugin to track and log all database queries with execution timing.
+
+### Features of the Slow Query Tracker
+
+- Tracks all database queries (SELECT, INSERT, UPDATE, DELETE)
+- Logs query execution time in milliseconds
+- Configurable slow query threshold via environment variable
+- Slow queries (> threshold) are logged at WARN level with `[SLOW QUERY]` prefix
+- Normal queries are logged at INFO level
+
+### Configuration of the Slow Query Tracker
+
+| Environment Variable    | Default | Description                                        |
+|-------------------------|---------|----------------------------------------------------|
+| `SLOW_QUERY_THRESHOLD`  | `200ms` | Threshold in milliseconds for slow query detection |
+
+### Log Output Example
+
+```code
+INFO Query executed: 15ms - products
+INFO Query executed: 50ms - orders
+WARN [SLOW QUERY] Query executed: 245ms - products
+```
+
+### Implementation
+
+The slow query tracker is implemented as a GORM plugin in `internal/pkg/querytracker/querytracker.go` and is automatically registered when the database connection is established.
+
 ## Getting Started
 
 ### Prerequisites
@@ -327,6 +358,9 @@ DB_MAX_OPEN_CONNS=100
 DB_CONN_MAX_LIFETIME="60m" #minutes
 DB_CONN_MAX_IDLETIME="15m" #minutes
 
+# SLOW QUERY TRACKER
+SLOW_QUERY_THRESHOLD=200
+
 # JWT
 JWT_SECRET_KEY=<jwt_secret_key>
 JWT_TTL="3600s" #seconds
@@ -352,11 +386,11 @@ REDIS_CACHE_TTL="5m" #minutes
 
 # CIRCUIT BREAKER
 CB_MAX_REQUESTS=3
-CB_INTERVAL="5s" #second
-CB_TIMEOUT="30s" #second
+CB_INTERVAL="5s" #seconds
+CB_TIMEOUT="30s" #seconds
 CB_THRESHOLD=3
 RETRY_ATTEMPTS=3
-RETRY_DELAY="2s" #second
+RETRY_DELAY="2s" #seconds
 ```
 
 ### 3. Start Database
