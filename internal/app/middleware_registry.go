@@ -10,10 +10,11 @@ import (
 )
 
 type MiddlewareRegistry struct {
-    Auth gin.HandlerFunc
-	Admin gin.HandlerFunc
-	Seller gin.HandlerFunc
-	Buyer gin.HandlerFunc
+    Auth      gin.HandlerFunc
+	Admin     gin.HandlerFunc
+	Seller    gin.HandlerFunc
+	Buyer     gin.HandlerFunc
+	RequestID gin.HandlerFunc
 }
 
 func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
@@ -27,6 +28,7 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 
 	// Global Middleware
 	// Note: please don't change the order
+	app.Use(middleware.RequestID()) // Request ID - must be first for logging
 	app.Use(middleware.LoggerMiddleware()) // Logging HTTP request
 	app.Use(gin.Recovery()) // Recover from panic
 	app.Use(middleware.InitCORS()) // CORS middleware
@@ -34,9 +36,10 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 
 	// Selective Middlewares
 	return &MiddlewareRegistry{
-        Auth: middleware.AuthMiddleware(),
-		Admin: middleware.RoleMiddleware(model.Admin),
-		Seller: middleware.RoleMiddleware(model.Seller, model.Admin),
-		Buyer: middleware.RoleMiddleware(model.Buyer),
+        Auth:      middleware.AuthMiddleware(),
+		Admin:     middleware.RoleMiddleware(model.Admin),
+		Seller:    middleware.RoleMiddleware(model.Seller, model.Admin),
+		Buyer:     middleware.RoleMiddleware(model.Buyer),
+		RequestID: middleware.RequestID(),
     }
 }

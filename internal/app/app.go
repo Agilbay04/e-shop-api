@@ -24,7 +24,7 @@ func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	svcRegistry := NewServiceRegistry(repoRegistry, db, rdb)
 	
 	// Register handler
-	handlerRegistry := NewHandlerRegistry(svcRegistry)
+	handlerRegistry := NewHandlerRegistry(svcRegistry, db, rdb)
 
 	// Register routes
 	RegisterRoutes(r, handlerRegistry, middlewareRegistry, rdb)
