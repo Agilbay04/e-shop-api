@@ -118,15 +118,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
         return dto.LoginResponse{}, util.UnauthorizedException("Token is invalid or expired")
     }
 
-    return dto.LoginResponse{
-        Token: token,
-        User: dto.UserResponse{
-            ID:       u.ID.String(),
-            Username: u.Username,
-            Email:    u.Email,
-            Role:     u.Role,
-        },
-    }, nil
+    return dto.LoginResponse{Token: token}, nil
 }
 
 func (s *authService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {

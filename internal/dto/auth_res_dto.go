@@ -4,7 +4,6 @@ import "e-shop-api/internal/model"
 
 type LoginResponse struct {
 	Token string      	`json:"token,omitempty"`
-	User  UserResponse	`json:"user"`
 }
 
 type UserResponse struct {

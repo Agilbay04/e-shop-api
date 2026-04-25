@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -49,20 +50,18 @@ func DeleteCacheByPattern(rdb *redis.Client, pattern string) error {
 	return iter.Err()
 }
 
-func IsRateLimited(rdb *redis.Client, key string, duration time.Duration) bool {
-	ctx := context.Background()
-	
-	// Check if key exists
-	exists, err := rdb.Exists(ctx, key).Result()
+func IsRateLimited(ctx context.Context, rdb *redis.Client, key string, limit int, window time.Duration) (bool, int, error) {
+	windowEpoch := time.Now().Unix() / int64(window.Seconds())
+	rateKey := fmt.Sprintf("%s:%d", key, windowEpoch)
+
+	count, err := rdb.Incr(ctx, rateKey).Result()
 	if err != nil {
-		return false // If redis error, set false
+		return true, 0, fmt.Errorf("redis incr failed: %w", err)
 	}
 
-	if exists > 0 {
-		return true // Limit hit
+	if count == 1 {
+		rdb.Expire(ctx, rateKey, window*3/2)
 	}
 
-	// Set limit
-	rdb.Set(ctx, key, "1", duration)
-	return false
+	return count > int64(limit), int(count), nil
 }

@@ -36,12 +36,12 @@ func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 		auth.POST("/register", h.AuthHandler.Register)
 		
 		auth.POST("/login", 
-			middleware.RateLimiter(rdb, "login", util.TimeParse("5s")),
+			middleware.RateLimiter(rdb, "login", 5, util.TimeParse("5s")),
 			h.AuthHandler.Login,
 		)
 		
 		auth.POST("/forgot-password", 
-			middleware.RateLimiter(rdb, "forgot-password", util.TimeParse("1m")), 
+			middleware.RateLimiter(rdb, "forgot-password", 3, util.TimeParse("1m")), 
 			h.AuthHandler.ForgotPassword,
 		)
 

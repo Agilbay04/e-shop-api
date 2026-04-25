@@ -149,7 +149,11 @@ This architecture provides:
 - **Transaction Support**: Database transactions for data integrity
 - **Database Pooling**: Database connection pooling for improved performance
 - **Redis Caching**: Redis caching for improved performance
-- **Rate Limiting**: Request rate limiting using Redis (5 req/5s for login, 1 req/1min for forgot-password)
+- **Rate Limiting**: Request rate limiting using Redis with fixed window counter
+  - `/auth/login`: 5 requests per 5 seconds
+  - `/auth/forgot-password`: 3 requests per 1 minute
+  - Headers: X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After
+  - Atomic INCR + EXPIRE for race-condition-free counting
 - **Circuit Breaker**: Circuit breaker pattern using gobreaker to handle external service failures gracefully
 - **Slow Query Tracker**: Track and log all database queries with execution timing (configurable threshold)
 - **Auto Retry**: Automatic retry mechanism with configurable attempts and delay

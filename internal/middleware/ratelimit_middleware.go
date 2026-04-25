@@ -1,27 +1,44 @@
 package middleware
 
 import (
+	"strconv"
+
 	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/util"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
-// RateLimiter middleware for limiting requests
-func RateLimiter(rdb *redis.Client, limitKey string, duration time.Duration) gin.HandlerFunc {
+func RateLimiter(rdb *redis.Client, limitKey string, limit int, window time.Duration) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// Get IP address for key rate limit
 		key := "limit:" + limitKey + ":" + ctx.ClientIP()
 
-		if util.IsRateLimited(rdb, key, duration) {
-			logger.L.Warn("To many request, please try again later.")
-			ctx.Error(util.ToManyRequestException("To many request, please try again later."))
+		limited, count, err := util.IsRateLimited(ctx, rdb, key, limit, window)
+		if err != nil {
+			logger.L.Error("Rate limiter error", zap.Error(err))
+			errResp := util.InternalServerErrorException("Service unavailable")
+			ctx.Error(errResp)
 			ctx.Abort()
 			return
 		}
 
+		retryAfter := window.Seconds()
+		if limited {
+			retryAfter = window.Seconds() - float64(count-1)*window.Seconds()/float64(limit+1)
+			logger.L.Warn("Rate limit exceeded", zap.String("key", key), zap.Int("count", count))
+			errResp := util.ToManyRequestException("Too many requests, please try again later.")
+			ctx.Error(errResp)
+			ctx.Abort()
+			return
+		}
+
+		remaining := limit - int(count) + 1
+		ctx.Header("X-RateLimit-Limit", strconv.Itoa(limit))
+		ctx.Header("X-RateLimit-Remaining", strconv.Itoa(remaining))
+		ctx.Header("Retry-After", strconv.FormatFloat(retryAfter, 'f', 0, 64))
 		ctx.Next()
 	}
 }
