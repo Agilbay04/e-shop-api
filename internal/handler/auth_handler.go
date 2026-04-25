@@ -77,7 +77,7 @@ func (h *AuthHandler) ForgotPassword(ctx *gin.Context) {
 		return
 	}
 
-	Ok(ctx, nil, "Request reset password has been sent to your email: " + req.Email)
+	Ok(ctx, nil, "Request reset password has been sent to your email: "+req.Email)
 }
 
 func (h *AuthHandler) ResetPassword(ctx *gin.Context) {

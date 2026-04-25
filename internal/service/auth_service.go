@@ -151,12 +151,21 @@ func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshToke
 		return dto.RefreshTokenResponse{}, util.UnauthorizedException("Failed to generate access token")
 	}
 
+	newRefreshToken, err := util.GenerateRefreshToken(u.ID.String())
+	if err != nil {
+		return dto.RefreshTokenResponse{}, util.UnauthorizedException("Failed to generate refresh token")
+	}
+
+	refreshTTL := util.GetEnvTime("JWT_REFRESH_TTL", "604800s")
+	_ = util.SetCache(s.rdb, redisKey, newRefreshToken, refreshTTL)
+
 	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", "900s").Seconds())
 
 	return dto.RefreshTokenResponse{
-		AccessToken: accessToken,
-		ExpiresIn:  expiresIn,
-		TokenType: "Bearer",
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+		ExpiresIn:   expiresIn,
+		TokenType:   "Bearer",
 	}, nil
 }
 
@@ -225,6 +234,9 @@ func (s *authService) ResetPassword(req dto.ResetPasswordRequest) error {
     // Delete token and email from Redis
     _ = util.DeleteCache(s.rdb, cacheKey)
     _ = util.DeleteCache(s.rdb, "user:email:"+email)
+
+    // Revoke all refresh tokens (force logout all devices)
+    _ = util.DeleteCache(s.rdb, "refresh_token:"+u.ID.String())
 
     return nil
 }

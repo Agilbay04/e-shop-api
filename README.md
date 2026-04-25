@@ -466,6 +466,8 @@ make clean
 
 | Method | Endpoint                     | Description                                 |
 |--------|------------------------------|---------------------------------------------|
+| GET    | /health                      | Health check                                |
+| GET    | /ready                       | Readiness check                             |
 | POST   | /api/v1/auth/register        | Register new user                           |
 | POST   | /api/v1/auth/login           | Login user (returns access + refresh token) |
 | POST   | /api/v1/auth/refresh-token   | Refresh access token                        |

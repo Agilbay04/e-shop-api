@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 type HealthHandler struct {
