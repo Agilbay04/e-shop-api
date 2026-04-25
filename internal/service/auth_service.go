@@ -16,6 +16,7 @@ import (
 type AuthService interface {
 	Register(req dto.RegisterRequest) (dto.UserResponse, error)
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
+	RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error)
 	ForgotPassword(req dto.ForgotPasswordRequest) error
 	ResetPassword(req dto.ResetPasswordRequest) error
 }
@@ -85,38 +86,78 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 }
 
 func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
-	// Define cache key
-    cacheKey := "user:email:" + req.Email
-    
-    // Try to get data from Redis
-    u, err := util.GetCache[*model.User](s.rdb, cacheKey)
-    
-    // If data not found in Redis
-    if err != nil {
-        // Get data from database
-        u, err = s.userQueryRepo.FindByEmail(req.Email)
-        if err != nil {
-            return dto.LoginResponse{}, util.UnprocessableEntityException("User email " + req.Email + " is not registered")
-        }
+	cacheKey := "user:email:" + req.Email
 
-        // Set data to Redis
+	u, err := util.GetCache[*model.User](s.rdb, cacheKey)
+
+	if err != nil {
+		u, err = s.userQueryRepo.FindByEmail(req.Email)
+		if err != nil {
+			return dto.LoginResponse{}, util.UnprocessableEntityException("User email " + req.Email + " is not registered")
+		}
+
 		ttl := util.GetEnvTime("REDIS_CACHE_TTL", "5m")
-        _ = util.SetCache(s.rdb, cacheKey, u, ttl)
-    }
+		_ = util.SetCache(s.rdb, cacheKey, u, ttl)
+	}
 
-    // Validate password
-    err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
-    if err != nil {
-        return dto.LoginResponse{}, util.UnauthorizedException("Invalid email or password")
-    }
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
+	if err != nil {
+		return dto.LoginResponse{}, util.UnauthorizedException("Invalid email or password")
+	}
 
-    // Generate token
-    token, err := util.GenerateToken(u.ID.String(), u.Username, u.Email, u.Picture, u.Role)
-    if err != nil {
-        return dto.LoginResponse{}, util.UnauthorizedException("Token is invalid or expired")
-    }
+	accessToken, err := util.GenerateAccessToken(u.ID.String(), u.Username, u.Email, u.Picture, u.Role)
+	if err != nil {
+		return dto.LoginResponse{}, util.UnauthorizedException("Failed to generate access token")
+	}
 
-    return dto.LoginResponse{Token: token}, nil
+	refreshToken, err := util.GenerateRefreshToken(u.ID.String())
+	if err != nil {
+		return dto.LoginResponse{}, util.UnauthorizedException("Failed to generate refresh token")
+	}
+
+	refreshTTL := util.GetEnvTime("JWT_REFRESH_TTL", "604800s")
+	redisKey := "refresh_token:" + u.ID.String()
+	_ = util.SetCache(s.rdb, redisKey, refreshToken, refreshTTL)
+
+	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", "900s").Seconds())
+
+	return dto.LoginResponse{
+		AccessToken:   accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:   expiresIn,
+		TokenType:   "Bearer",
+	}, nil
+}
+
+func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error) {
+	claims, err := util.ParseRefreshToken(req.RefreshToken)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, util.UnauthorizedException("Invalid refresh token")
+	}
+
+	redisKey := "refresh_token:" + claims.UserID
+	storedToken, err := util.GetCache[string](s.rdb, redisKey)
+	if err != nil || storedToken != req.RefreshToken {
+		return dto.RefreshTokenResponse{}, util.UnauthorizedException("Refresh token revoked or expired")
+	}
+
+	u, err := s.userQueryRepo.FindByID(claims.UserID)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, util.UnauthorizedException("User not found")
+	}
+
+	accessToken, err := util.GenerateAccessToken(u.ID.String(), u.Username, u.Email, u.Picture, u.Role)
+	if err != nil {
+		return dto.RefreshTokenResponse{}, util.UnauthorizedException("Failed to generate access token")
+	}
+
+	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", "900s").Seconds())
+
+	return dto.RefreshTokenResponse{
+		AccessToken: accessToken,
+		ExpiresIn:  expiresIn,
+		TokenType: "Bearer",
+	}, nil
 }
 
 func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {

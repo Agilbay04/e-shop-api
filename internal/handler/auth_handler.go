@@ -48,6 +48,22 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	Ok(ctx, res, "Login success")
 }
 
+func (h *AuthHandler) RefreshToken(ctx *gin.Context) {
+	var req dto.RefreshTokenRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.Error(util.BadRequestException("Invalid request body", err))
+		return
+	}
+
+	res, err := h.authService.RefreshToken(req)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	Ok(ctx, res, "Token refreshed successfully")
+}
+
 func (h *AuthHandler) ForgotPassword(ctx *gin.Context) {
 	var req dto.ForgotPasswordRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

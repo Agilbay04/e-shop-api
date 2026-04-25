@@ -368,6 +368,8 @@ SLOW_QUERY_THRESHOLD=200
 # JWT
 JWT_SECRET_KEY=<jwt_secret_key>
 JWT_TTL="3600s" #seconds
+JWT_ACCESS_TTL="900s" #seconds (access token - 15 min)
+JWT_REFRESH_TTL="604800s" #seconds (refresh token - 7 days)
 
 # SMTP EMAIL
 SMTP_HOST=127.0.0.1
@@ -462,12 +464,13 @@ make clean
 
 ### Public Routes
 
-| Method | Endpoint                     | Description               |
-|--------|------------------------------|---------------------------|
-| POST   | /api/v1/auth/register        | Register new user         |
-| POST   | /api/v1/auth/login           | Login user                |
-| POST   | /api/v1/auth/forgot-password | Request password reset    |
-| PUT    | /api/v1/auth/reset-password  | Reset password with token |
+| Method | Endpoint                     | Description                                 |
+|--------|------------------------------|---------------------------------------------|
+| POST   | /api/v1/auth/register        | Register new user                           |
+| POST   | /api/v1/auth/login           | Login user (returns access + refresh token) |
+| POST   | /api/v1/auth/refresh-token   | Refresh access token                        |
+| POST   | /api/v1/auth/forgot-password | Request password reset                      |
+| PUT    | /api/v1/auth/reset-password  | Reset password with token                   |
 
 ### Protected Routes (Requires JWT)
 

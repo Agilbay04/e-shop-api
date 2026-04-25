@@ -31,3 +31,7 @@ type ResetPasswordRequest struct {
     ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=NewPassword"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+

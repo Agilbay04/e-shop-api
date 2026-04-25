@@ -3,7 +3,16 @@ package dto
 import "e-shop-api/internal/model"
 
 type LoginResponse struct {
-	Token string      	`json:"token,omitempty"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresIn   int64  `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
+type RefreshTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn  int64  `json:"expires_in"`
+	TokenType  string `json:"token_type"`
 }
 
 type UserResponse struct {
