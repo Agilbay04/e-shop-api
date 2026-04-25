@@ -473,8 +473,8 @@ make clean
 
 | Method | Endpoint                      | Description                |
 |--------|-------------------------------|----------------------------|
-| GET    | /api/v1/auth/profile          | Get profile user           |
-| POST   | /api/v1/auth/upload-picture   | Upload profile picture     |
+| GET    | /api/v1/users/profile         | Get profile user (cached)  |
+| POST   | /api/v1/users/upload-picture  | Upload profile picture     |
 | POST   | /api/v1/stores                | Create store               |
 | GET    | /api/v1/stores                | List stores (paginated)    |
 | PUT    | /api/v1/stores/:id            | Update store               |
@@ -522,8 +522,7 @@ Response:
 
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {...}
+  "token": "eyJhbGciOiJIUzI1NiIs..."
 }
 ```
 

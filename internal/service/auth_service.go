@@ -16,8 +16,6 @@ import (
 type AuthService interface {
 	Register(req dto.RegisterRequest) (dto.UserResponse, error)
 	Login(req dto.LoginRequest) (dto.LoginResponse, error)
-	Profile(user dto.CurrentUser) (dto.UserResponse, error)
-	UploadPicture(req dto.UploadPictureRequest, user dto.CurrentUser) (dto.UserResponse, error)
 	ForgotPassword(req dto.ForgotPasswordRequest) error
 	ResetPassword(req dto.ResetPasswordRequest) error
 }
@@ -119,75 +117,6 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
     }
 
     return dto.LoginResponse{Token: token}, nil
-}
-
-func (s *authService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {
-	return dto.UserResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
-		Role:     user.Role,
-		Picture:  user.Picture,
-	}, nil
-}
-
-func (s *authService) UploadPicture(
-	req dto.UploadPictureRequest, 
-	user dto.CurrentUser,
-) (dto.UserResponse, error) {
-	tx := s.db.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			panic(r)
-		}
-	}()
-
-	uploader := util.NewFileUploader(
-		util.WithDirectory("uploads/avatars"),
-		util.WithMaxSize(2),
-		util.WithExtensions([]string{".jpg", ".jpeg", ".png", ".webp"}),
-	)
-
-	userData, err := s.userQueryRepo.FindByID(user.ID)
-	if err != nil {
-		tx.Rollback()
-		return dto.UserResponse{}, err;
-	}
-
-	oldPath := userData.Picture
-
-	newPath, err := uploader.UploadFile(req.Picture)
-	if err != nil {
-		tx.Rollback()
-		return dto.UserResponse{}, err
-	}
-
-	userData.Picture = newPath
-	if err := s.userRepo.Update(tx, userData); err != nil {
-		tx.Rollback()
-		uploader.DeleteFile(newPath)
-		return dto.UserResponse{}, err
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		tx.Rollback()
-		uploader.DeleteFile(newPath)
-		return dto.UserResponse{}, err
-	}
-
-	if oldPath != "" {
-		uploader.DeleteFile(oldPath)
-	}
-
-	return dto.UserResponse{
-		ID:       userData.ID.String(),
-		Username: userData.Username,
-		Email:    userData.Email,
-		Role:     userData.Role,
-		Picture:  userData.Picture,
-	}, nil
 }
 
 func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {

@@ -9,6 +9,7 @@ import (
 
 type HandlerRegistry struct {
 	AuthHandler   	*handler.AuthHandler
+	UserHandler   	*handler.UserHandler
 	StoreHandler 	*handler.StoreHandler
 	ProductHandler 	*handler.ProductHandler
 	OrderHandler  	*handler.OrderHandler
@@ -18,6 +19,7 @@ type HandlerRegistry struct {
 func NewHandlerRegistry(svc *ServiceRegistry, db *gorm.DB, rdb *redis.Client) *HandlerRegistry {
 	return &HandlerRegistry{
 		AuthHandler:  	handler.NewAuthHandler(svc.AuthService),
+		UserHandler:  	handler.NewUserHandler(svc.UserService),
 		StoreHandler: 	handler.NewStoreHandler(svc.StoreService),
 		ProductHandler: handler.NewProductHandler(svc.ProductService),
 		OrderHandler: 	handler.NewOrderHandler(svc.OrderService),

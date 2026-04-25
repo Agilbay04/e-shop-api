@@ -48,36 +48,6 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	Ok(ctx, res, "Login success")
 }
 
-func (h *AuthHandler) Profile(ctx *gin.Context) {
-	user := util.GetCurrentUser(ctx)
-
-	res, err := h.authService.Profile(user)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	Ok(ctx, res, "Success get profile")
-}
-
-func (h *AuthHandler) UploadPicture(ctx *gin.Context) {
-	var req dto.UploadPictureRequest
-	user := util.GetCurrentUser(ctx)
-
-	if err := ctx.ShouldBind(&req); err != nil {
-		ctx.Error(util.BadRequestException("Invalid request body", err))
-		return
-	}
-
-	res, err := h.authService.UploadPicture(req, user)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	Ok(ctx, res, "Success update profile")
-}
-
 func (h *AuthHandler) ForgotPassword(ctx *gin.Context) {
 	var req dto.ForgotPasswordRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

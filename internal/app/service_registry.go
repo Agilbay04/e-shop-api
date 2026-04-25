@@ -9,6 +9,7 @@ import (
 
 type ServiceRegistry struct {
 	AuthService    service.AuthService
+	UserService    service.UserService
 	StoreService   service.StoreService
 	ProductService service.ProductService
 	OrderService   service.OrderService
@@ -18,6 +19,7 @@ type ServiceRegistry struct {
 func NewServiceRegistry(repo *RepositoryRegistry, db *gorm.DB, rdb *redis.Client) *ServiceRegistry {
 	return &ServiceRegistry{
 		AuthService:    service.NewAuthService(db, repo.UserRepo, repo.UserQuery, service.NewNotificationService(), rdb),
+		UserService:    service.NewUserService(db, repo.UserRepo, repo.UserQuery, rdb),
 		StoreService:   service.NewStoreService(db, repo.StoreRepo, repo.StoreQuery, repo.OrderQuery, repo.UserQuery),
 		ProductService: service.NewProductService(db, repo.ProductRepo, repo.ProductQuery, repo.StoreQuery),
 		OrderService:   service.NewOrderService(

@@ -22,6 +22,7 @@ func RegisterRoutes(r *gin.Engine, h *HandlerRegistry, m *MiddlewareRegistry, rd
 		protected := api.Group("/")
 		protected.Use(m.Auth)
 		{
+			registerUserRoutes(protected, h)
 			registerStoreRoutes(protected, h, m)
 			registerProductRoutes(protected, h, m)
 			registerOrderRoutes(protected, h, m)
@@ -46,14 +47,14 @@ func registerAuthRoutes(api *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 		)
 
 		auth.PUT("/reset-password", h.AuthHandler.ResetPassword)
+	}
+}
 
-		// Protected Routes (Common Auth)
-		protected := auth.Group("/")
-		protected.Use(m.Auth)
-		{
-			protected.GET("/profile", h.AuthHandler.Profile)
-			protected.POST("/upload-picture", h.AuthHandler.UploadPicture)
-		}
+func registerUserRoutes(rg *gin.RouterGroup, h *HandlerRegistry) {
+	user := rg.Group("/users")
+	{
+		user.GET("/profile", h.UserHandler.Profile)
+		user.POST("/upload-picture", h.UserHandler.UploadPicture)
 	}
 }
 
