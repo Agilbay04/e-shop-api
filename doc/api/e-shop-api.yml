@@ -30,7 +30,7 @@ items:
       - info:
           name: Forgot Password
           type: http
-          seq: 3
+          seq: 4
         http:
           method: POST
           url: '{{base_url}}/api/v1/auth/forgot-password'
@@ -69,7 +69,7 @@ items:
       - info:
           name: Register
           type: http
-          seq: 2
+          seq: 3
         http:
           method: POST
           url: '{{base_url}}/api/v1/auth/register'
@@ -91,7 +91,7 @@ items:
       - info:
           name: Reset Password
           type: http
-          seq: 4
+          seq: 5
         http:
           method: PUT
           url: '{{base_url}}/api/v1/auth/reset-password'
@@ -102,6 +102,25 @@ items:
                 "token": "2664f00f-c743-41cf-a7fd-c4924574e10f",
                 "new_password": "rahasia123",
                 "confirm_password": "rahasia123"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Refresh Token
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/auth/refresh-token'
+          body:
+            type: json
+            data: |-
+              {
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzU3ODdlNDItZmMwZC00MDU4LWI3MDItNDc3NjQ0NjQwYzJkIiwiZXhwIjoxNzc3NzQwNDU0LCJpYXQiOjE3NzcxMzU2NTR9.2T6RLeeUKTCwOZjfsSCTQz4e0C7RR8osf3PyVp8qLQo"
               }
           auth: inherit
         settings:
@@ -610,5 +629,5 @@ extensions:
     ignore:
       - node_modules
       - .git
-    exportedAt: '2026-04-25T16:20:11.278Z'
+    exportedAt: '2026-04-25T16:55:50.314Z'
     exportedUsing: Bruno
