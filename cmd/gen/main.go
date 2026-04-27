@@ -1,7 +1,7 @@
 package main
 
 import (
-	"e-shop-api/internal/pkg/util"
+	"e-shop-api/internal/pkg/utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +13,7 @@ import (
 const migrationTemplate = `package migrations
 
 import (
-	"e-shop-api/internal/model"
+	"e-shop-api/internal/models"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
 )
@@ -22,7 +22,7 @@ func {{.Name}}Migration() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "{{.Timestamp}}",
 		Migrate: func(tx *gorm.DB) error {
-			return tx.AutoMigrate(&model.{{.Name}}{})
+			return tx.AutoMigrate(&models.{{.Name}}{})
 		},
 		Rollback: func(tx *gorm.DB) error {
 			return tx.Migrator().DropTable("{{.TableName}}")
@@ -67,7 +67,7 @@ func main() {
 
 	ts := time.Now().Format("20060102150405")
 	dirPath := "internal/migrations"
-	util.MakeDir(dirPath)
+	utils.MakeDir(dirPath)
 
 	fileName := filepath.Join(dirPath, fmt.Sprintf("%s_%s_migration.go", ts, lowerName))
 

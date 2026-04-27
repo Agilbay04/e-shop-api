@@ -1,7 +1,7 @@
 package main
 
 import (
-	"e-shop-api/internal/config"
+	"e-shop-api/internal/configs"
 	"e-shop-api/internal/migrations"
 	"e-shop-api/internal/pkg/logger"
 
@@ -16,7 +16,7 @@ func main() {
 
 	logger.L.Info("Starting migrations...")
 
-	db := config.ConnectDatabase()
+	db := configs.ConnectDatabase()
 
 	if err := migrations.RunMigrations(db); err != nil {
 		logger.L.Fatal("Migration failed", zap.Error(err))

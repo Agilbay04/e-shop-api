@@ -5,7 +5,7 @@ MIGRATE_PATH=cmd/migrate/main.go
 ADD_MIGRATE_PATH=cmd/gen/main.go
 SEED_PATH=cmd/seed/main.go
 
-.PHONY: all build run migrate gen-mig tidy clean help
+.PHONY: all build run dev lint migrate seed add-migrate tidy build clean help
 
 # Default target
 all: build

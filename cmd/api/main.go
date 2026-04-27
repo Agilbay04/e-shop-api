@@ -1,10 +1,10 @@
 package main
 
 import (
-	"e-shop-api/internal/app"
-	"e-shop-api/internal/config"
+	"e-shop-api/internal/apps"
+	"e-shop-api/internal/configs"
 	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/pkg/util"
+	"e-shop-api/internal/pkg/utils"
 	"errors"
 	"net/http"
 	"os"
@@ -27,13 +27,13 @@ func main() {
 	logger.L.Info("Starting server...")
 
 	// Connect database
-	db := config.ConnectDatabase()
+	db := configs.ConnectDatabase()
 
 	// Connect redis
-	rdb := config.ConnectRedis()
+	rdb := configs.ConnectRedis()
 
 	// Init setup for all dependencies
-	r := app.Setup(db, rdb)
+	r := apps.Setup(db, rdb)
 
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
@@ -47,7 +47,7 @@ func main() {
 
 	// Run server in goroutine
 	go func() {
-		useHTTPS := util.GetEnvBool("USE_HTTPS", "false")
+		useHTTPS := utils.GetEnvBool("USE_HTTPS", "false")
 		cert := os.Getenv("SSL_CERT_PATH")
 		key := os.Getenv("SSL_KEY_PATH")
 
@@ -65,5 +65,5 @@ func main() {
 	}()
 
 	// Graceful shutdown
-	util.GracefulShutdown(srv, db, rdb, util.TimeParse("5s"))
+	utils.GracefulShutdown(srv, db, rdb, utils.TimeParse("5s"))
 }

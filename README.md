@@ -19,25 +19,26 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 ```bash
 e-shop-api/
 ├── cmd/
-│   ├── api/            # Main API server
-│   ├── gen/            # Migration generator
-│   ├── migrate/        # Database migration
-│   └── seed/           # Data seeding
-├── doc/
+│   ├── api/            # Command main API server
+│   ├── gen/            # Command migration generator
+│   ├── migrate/        # Command database migration
+│   └── seed/           # Command data seeder
+├── docs/
 │   ├── api/            # API documentation (HTML, YAML, PNG)
 │   └── erd/            # Database documentation (DBML, SQL, ERD PNG)
 ├── internal/
-│   ├── app/            # Application setup (router, DI registries, etc.)
-│   ├── config/         # Configuration (database, seeder, redis, etc.)
-│   ├── constant/       # Constants for common values
-│   ├── dto/            # Data Transfer Objects
-│   ├── handler/        # HTTP handlers
-│   ├── middleware/     # Middleware
+│   ├── apps/           # Application setup (router, DI registries, etc.)
+│   ├── configs/        # Configuration (database, redis, etc.)
+│   ├── constants/      # Constants for common values
+│   ├── dtos/           # Data Transfer Objects
+│   ├── handlers/       # HTTP handlers
+│   ├── middlewares/    # Middleware
 │   ├── migrations/     # Database migrations (gormigrate)
-│   ├── model/          # Database models
-│   ├── repository/     # Database repositories
-│   ├── service/        # Business logic services
-│   └── pkg/util/       # Utility packages (logger, auth, pagination, etc.)
+│   ├── models/         # Database models
+│   ├── repositories/   # Database repositories
+│   ├── seeders/        # Data seeders
+│   ├── services/       # Business logic services
+│   └── pkg/utils/      # Utility packages (logger, auth, pagination, etc.)
 ├── uploads/            # Static file storage
 ├── .env.example        # Example environment file
 ├── docker-compose.yml  # Docker Compose file
