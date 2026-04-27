@@ -400,6 +400,15 @@ CB_TIMEOUT="30s" #seconds
 CB_THRESHOLD=3
 RETRY_ATTEMPTS=3
 RETRY_DELAY="2s" #seconds
+
+# MAKEFILE
+BINARY_NAME="e-shop-api"
+MAIN_PATH="cmd/api/main.go"
+MIGRATE_PATH="cmd/migrate/main.go"
+ADD_MIGRATE_PATH="cmd/gen/main.go"
+SEED_PATH="cmd/seed/main.go"
+DOCS_API_PATH="docs/api"
+DOCS_ERD_PATH="docs/erd"
 ```
 
 ### 3. Start Database
@@ -462,6 +471,17 @@ make tidy
 ```bash
 make clean
 ```
+
+### 10. DBML (Generate database schema)
+
+```bash
+make dbml
+```
+
+> **Note:** This will generate a `.sql` and `.dbml` file in the `docs/erd` directory. You need to install the following tools:
+
+- `sql` with command: `sudo apt update && sudo apt install postgresql-client`
+- `dbml` with command: `npm install -g @dbml/cli`
 
 ## API Endpoints
 
