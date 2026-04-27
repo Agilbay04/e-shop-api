@@ -84,7 +84,7 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
                             v |
 +-------------------------------------------------------------+
 |                      Repository Layer                       |
-|                   (internal/repositories)                    |
+|                   (internal/repositories)                   |
 |   - *Repository: Write operations (Create, Update)          |
 |   - *QueryRepository: Read operations (Find, List)          |
 |   - Database operations via GORM                            |
