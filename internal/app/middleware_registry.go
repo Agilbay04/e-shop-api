@@ -1,8 +1,8 @@
 package app
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/middleware"
-	"e-shop-api/internal/model"
 	"os"
 	"strings"
 
@@ -28,18 +28,18 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 
 	// Global Middleware
 	// Note: please don't change the order
-	app.Use(middleware.RequestID()) // Request ID - must be first for logging
-	app.Use(middleware.LoggerMiddleware()) // Logging HTTP request
-	app.Use(gin.Recovery()) // Recover from panic
-	app.Use(middleware.InitCORS()) // CORS middleware
-	app.Use(middleware.ResponseMiddleware()) // Response middleware
+	app.Use(middleware.RequestID()) 		  //# Request ID - must be first for logging
+	app.Use(middleware.LoggerMiddleware()) 	  //# Logging HTTP request
+	app.Use(gin.Recovery()) 				  //# Recover from panic
+	app.Use(middleware.InitCORS()) 			  //# CORS middleware
+	app.Use(middleware.ResponseMiddleware())  //# Response middleware
 
 	// Selective Middlewares
 	return &MiddlewareRegistry{
         Auth:      middleware.AuthMiddleware(),
-		Admin:     middleware.RoleMiddleware(model.Admin),
-		Seller:    middleware.RoleMiddleware(model.Seller, model.Admin),
-		Buyer:     middleware.RoleMiddleware(model.Buyer),
+		Admin:     middleware.RoleMiddleware(constant.Admin),
+		Seller:    middleware.RoleMiddleware(constant.Seller, constant.Admin),
+		Buyer:     middleware.RoleMiddleware(constant.Buyer),
 		RequestID: middleware.RequestID(),
 
 		// Register new middlewares here

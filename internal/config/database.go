@@ -1,6 +1,7 @@
 package config
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/querytracker"
 	"e-shop-api/internal/pkg/util"
@@ -19,7 +20,7 @@ func ConnectDatabase() *gorm.DB {
 	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
+	dsn := fmt.Sprintf(constant.PostgresDSN,
 		host, user, password, dbName, port)
 
 	var db *gorm.DB
@@ -67,10 +68,10 @@ func setupDatabasePooling(db *gorm.DB) {
 		panic("Failed to setup database pooling!")
 	}
 
-	maxIdle := util.GetEnvInt("DB_MAX_IDLE_CONNS", "10")
-	maxOpen := util.GetEnvInt("DB_MAX_OPEN_CONNS", "100")
-	maxLifetimeMinutes := util.GetEnvTime("DB_CONN_MAX_LIFETIME", "60m")
-	maxIdleMinutes := util.GetEnvTime("DB_CONN_MAX_IDLETIME", "15m")
+	maxIdle := util.GetEnvInt("DB_MAX_IDLE_CONNS", constant.DBMaxIdleConns)
+	maxOpen := util.GetEnvInt("DB_MAX_OPEN_CONNS", constant.DBMaxOpenConns)
+	maxLifetimeMinutes := util.GetEnvTime("DB_CONN_MAX_LIFETIME", constant.DBConnMaxLifetime)
+	maxIdleMinutes := util.GetEnvTime("DB_CONN_MAX_IDLETIME", constant.DBConnMaxIdleTime)
 
 	sqlDB.SetMaxIdleConns(maxIdle)
 	sqlDB.SetMaxOpenConns(maxOpen)

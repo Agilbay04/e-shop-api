@@ -1,6 +1,7 @@
 package service
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
@@ -101,7 +102,7 @@ func (s *productService) CreateProduct(
 }
 
 func (s *productService) GetPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error) {
-	if user.Role == model.Seller {
+	if user.Role == constant.Seller {
 		userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil {
 			return nil, 0, err

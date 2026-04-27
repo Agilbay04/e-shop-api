@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"slices"
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
-	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +13,7 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Get Authorization header
-		authHeader := ctx.GetHeader("Authorization")
+		authHeader := ctx.GetHeader(constant.AuthorizationHeader)
 		if authHeader == "" {
 			ctx.Error(util.UnauthorizedException("Missing authorization header"))
 			ctx.Abort()
@@ -22,7 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Format Authorization header must be "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		if len(parts) != 2 || parts[0] != constant.BearerPrefix {
 			ctx.Error(util.UnauthorizedException("Invalid authorization format"))
 			ctx.Abort()
 			return
@@ -53,7 +53,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func RoleMiddleware(roles ...model.UserRole) gin.HandlerFunc {
+func RoleMiddleware(roles ...constant.UserRole) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
         // Get user from context
         val, exists := ctx.Get("currentUser")

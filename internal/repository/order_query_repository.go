@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
@@ -9,9 +10,9 @@ import (
 )
 
 type OrderQueryRepository interface {
-	CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []model.OrderStatus) (int64, error)
+	CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []constant.OrderStatus) (int64, error)
 	FindByIDWithLock(tx *gorm.DB, orderID string) (*model.Order, error)
-	FindAllPagination(userID string, storeID string, statuses []model.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error)
+	FindAllPagination(userID string, storeID string, statuses []constant.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error)
 }
 
 type orderQueryRepository struct {
@@ -22,7 +23,7 @@ func NewOrderQueryRepository(db *gorm.DB) OrderQueryRepository {
 	return &orderQueryRepository{db}
 }
 
-func (r *orderQueryRepository) CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []model.OrderStatus) (int64, error) {
+func (r *orderQueryRepository) CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []constant.OrderStatus) (int64, error) {
 	var count int64
 
 	query := r.db.Model(&model.OrderItem{}).
@@ -56,7 +57,7 @@ func (r *orderQueryRepository) FindByIDWithLock(tx *gorm.DB, orderID string) (*m
 	return &order, nil
 }
 
-func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, statuses []model.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error) {
+func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, statuses []constant.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error) {
 	var orders []model.Order
 	var total int64
 

@@ -1,11 +1,11 @@
 package dto
 
-import "e-shop-api/internal/model"
+import "e-shop-api/internal/constant"
 
 type CurrentUser struct {
-    ID       string         `json:"id"`
-    Username string         `json:"username"`
-    Email    string         `json:"email"`
-    Role     model.UserRole `json:"role"`
-    Picture  string         `json:"picture"`
+    ID       string             `json:"id"`
+    Username string             `json:"username"`
+    Email    string             `json:"email"`
+    Role     constant.UserRole  `json:"role"`
+    Picture  string             `json:"picture"`
 }

@@ -1,7 +1,7 @@
 package util
 
 import (
-	"e-shop-api/internal/model"
+	"e-shop-api/internal/constant"
 	"errors"
 	"os"
 	"time"
@@ -10,11 +10,11 @@ import (
 )
 
 type CustomClaims struct {
-	ID       string 		`json:"id"`
-	Username string    		`json:"username"`
-	Email    string    		`json:"email"`
-	Role     model.UserRole	`json:"role"`
-	Picture  string			`json:"picture"`
+	ID       string 			`json:"id"`
+	Username string    			`json:"username"`
+	Email    string    			`json:"email"`
+	Role     constant.UserRole	`json:"role"`
+	Picture  string				`json:"picture"`
 	jwt.RegisteredClaims
 }
 
@@ -23,9 +23,9 @@ type RefreshClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(id, username, email, picture string, role model.UserRole) (string, error) {
+func GenerateToken(id, username, email, picture string, role constant.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvTime("JWT_TTL", "3600s")
+	ttl := GetEnvTime("JWT_TTL", constant.JwtTtl)
 
 	claims := CustomClaims{
 		ID:       id,
@@ -43,9 +43,9 @@ func GenerateToken(id, username, email, picture string, role model.UserRole) (st
 	return token.SignedString(secretKey)
 }
 
-func GenerateAccessToken(id, username, email, picture string, role model.UserRole) (string, error) {
+func GenerateAccessToken(id, username, email, picture string, role constant.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvTime("JWT_ACCESS_TTL", "900s")
+	ttl := GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl)
 
 	claims := CustomClaims{
 		ID:       id,
@@ -65,7 +65,7 @@ func GenerateAccessToken(id, username, email, picture string, role model.UserRol
 
 func GenerateRefreshToken(userID string) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvTime("JWT_REFRESH_TTL", "604800s")
+	ttl := GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
 
 	claims := RefreshClaims{
 		UserID: userID,

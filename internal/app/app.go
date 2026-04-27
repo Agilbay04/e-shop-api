@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
+func Setup(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	r := gin.New()
 
 	// Register JSON tag name

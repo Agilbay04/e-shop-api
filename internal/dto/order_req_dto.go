@@ -1,16 +1,16 @@
 package dto
 
 import (
-	"e-shop-api/internal/model"
+	"e-shop-api/internal/constant"
 
 	"github.com/google/uuid"
 )
 
 type OrderRequest struct {
-	IsCheckout bool               `json:"is_checkout"`
-	GrandTotal int                `json:"grand_total"`
-	Status     model.OrderStatus  `json:"status"`
-	OrderItems []OrderItemRequest `json:"order_items" binding:"required"`
+	IsCheckout bool               	`json:"is_checkout"`
+	GrandTotal int                	`json:"grand_total"`
+	Status     constant.OrderStatus `json:"status"`
+	OrderItems []OrderItemRequest 	`json:"order_items" binding:"required"`
 }
 
 type OrderItemRequest struct {
@@ -34,5 +34,5 @@ func QueryOrderRequest() QueryOrderParam {
 
 type QueryOrderParam struct {
 	PaginationParam
-	Status *model.OrderStatus `form:"status"`
+	Status *constant.OrderStatus `form:"status"`
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
@@ -55,9 +56,9 @@ func (o *orderService) CreateOrder(
 ) (dto.OrderResponse, error) {
 	// Set Status
 	if req.IsCheckout {
-		req.Status = model.Pending
+		req.Status = constant.Pending
 	} else {
-		req.Status = model.Draft
+		req.Status = constant.Draft
 	}
 
 	// Begin Transaction
@@ -180,7 +181,7 @@ func (o *orderService) saveOrder(
 	tx *gorm.DB,
 	userID string,
 	total int,
-	status model.OrderStatus,
+	status constant.OrderStatus,
 ) (*model.Order, error) {
 	newOrder := &model.Order{
 		Base:       model.Base{CreatedBy: uuid.MustParse(userID)},
@@ -209,9 +210,9 @@ func (o *orderService) saveOrderItems(
 func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error) {
 	// Set Status
 	if req.IsCheckout {
-		req.Status = model.Pending
+		req.Status = constant.Pending
 	} else {
-		req.Status = model.Draft
+		req.Status = constant.Draft
 	}
 
 	// Begin Transaction
@@ -231,18 +232,18 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 	}
 
 	// Validate only admin or order creator can update order
-	if user.Role != model.Admin && order.UserID.String() != user.ID {
+	if user.Role != constant.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.ForbiddenException("You are not authorized to update this order")
 	}
 
 	// Validate only draft or pending order can be updated
-	validStatus := []model.OrderStatus{model.Draft}
+	validStatus := []constant.OrderStatus{constant.Draft}
 	if !slices.Contains(validStatus, order.Status) {
 		tx.Rollback()
 		return dto.OrderResponse{},
-			util.BadRequestException("Only "+string(model.Draft)+" order can be updated", nil)
+			util.BadRequestException("Only "+string(constant.Draft)+" order can be updated", nil)
 	}
 
 	// Update Order
@@ -294,12 +295,12 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 
 func (s *orderService) GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) ([]dto.OrderResponse, int64, error) {
 	var userID, storeID string
-	var statuses []model.OrderStatus
+	var statuses []constant.OrderStatus
 
 	switch user.Role {
-		case model.Buyer:
+		case constant.Buyer:
 			userID = user.ID
-		case model.Seller:
+		case constant.Seller:
 			userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil || userStore == nil {
 			return []dto.OrderResponse{}, 0, nil
@@ -308,7 +309,7 @@ func (s *orderService) GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) 
 	}
 
 	if req.Status != nil {
-		statuses = []model.OrderStatus{*req.Status}
+		statuses = []constant.OrderStatus{*req.Status}
 	}
 
 	return s.orderQueryRepo.FindAllPagination(userID, storeID, statuses, req)
@@ -332,24 +333,24 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	}
 
 	// Validate only admin or order creator can cancel order
-	if user.Role != model.Admin && order.UserID.String() != user.ID {
+	if user.Role != constant.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.ForbiddenException("You are not authorized to cancel this order")
 	}
 
 	// Validate only draft or pending order can be cancelled
-	validStatus := []model.OrderStatus{model.Draft, model.Pending}
+	validStatus := []constant.OrderStatus{constant.Draft, constant.Pending}
 	if !slices.Contains(validStatus, order.Status) {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.BadRequestException(
-				"Only "+string(model.Draft)+" and "+string(model.Pending)+" orders can be cancelled. Current status: "+string(order.Status),
+				"Only "+string(constant.Draft)+" and "+string(constant.Pending)+" orders can be cancelled. Current status: "+string(order.Status),
 				nil)
 	}
 
 	// Update Order Status
-	order.Status = model.Cancelled
+	order.Status = constant.Cancelled
 	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
@@ -357,7 +358,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	}
 
 	// Rollback Stock for each OrderItem
-	if order.Status != model.Draft {
+	if order.Status != constant.Draft {
 		for _, item := range order.OrderItems {
 			if err := s.productRepo.AddStock(tx, item.ProductID.String(), item.Quantity); err != nil {
 				tx.Rollback()
@@ -420,23 +421,23 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 	}
 
 	// Validate only admin or order creator can confirm order
-	if user.Role != model.Admin && order.UserID.String() != user.ID {
+	if user.Role != constant.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.ForbiddenException("You are not authorized to cancel this order")
 	}
 
 	// Validate only pending order can be confirmed
-	if order.Status != model.Pending {
+	if order.Status != constant.Pending {
 		tx.Rollback()
 		return dto.OrderResponse{},
 			util.BadRequestException(
-				"Only "+string(model.Pending)+" orders can be confirmed. Current status: "+string(order.Status),
+				"Only "+string(constant.Pending)+" orders can be confirmed. Current status: "+string(order.Status),
 				nil)
 	}
 
 	// Update Order Status
-	order.Status = model.Paid
+	order.Status = constant.Paid
 	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
@@ -56,7 +57,7 @@ func (s *storeService) CreateStore(
 		}
 	}()
 
-	if user.Role != model.Seller {
+	if user.Role != constant.Seller {
 		tx.Rollback()
 		return dto.CreateStoreResponse{}, util.UnauthorizedException("User is not a seller")
 	}
@@ -100,7 +101,7 @@ func (s *storeService) GetStores(
 	req dto.QueryStoreParam,
 	user dto.CurrentUser,
 ) ([]dto.StoreResponse, int64, error) {
-	if user.Role == model.Seller {
+	if user.Role == constant.Seller {
 		userStore, _ := s.storeQueryRepo.FindByUserID(user.ID)
 
 		if userStore == nil {
@@ -209,7 +210,7 @@ func (s *storeService) ActivateStore(
 	}
 
 	if !req.IsActive {
-		count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, req.ID, []model.OrderStatus{model.Pending})
+		count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, req.ID, []constant.OrderStatus{constant.Pending})
 		if err != nil {
 			tx.Rollback()
 			return dto.StoreResponse{}, util.InternalServerErrorException("Failed to check order items")
@@ -274,7 +275,7 @@ func (s *storeService) DeleteStore(
 		return dto.StoreResponse{}, util.ForbiddenException("You don't have permission to delete this store")
 	}
 
-	count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, id, []model.OrderStatus{model.Draft, model.Pending})
+	count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, id, []constant.OrderStatus{constant.Draft, constant.Pending})
 	if err != nil {
 		tx.Rollback()
 		return dto.StoreResponse{}, util.InternalServerErrorException("Failed to check order items")

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
@@ -96,7 +97,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 			return dto.LoginResponse{}, util.UnprocessableEntityException("User email " + req.Email + " is not registered")
 		}
 
-		ttl := util.GetEnvTime("REDIS_CACHE_TTL", "5m")
+		ttl := util.GetEnvTime("REDIS_CACHE_TTL", constant.RedisCacheTtl)
 		_ = util.SetCache(s.rdb, cacheKey, u, ttl)
 	}
 
@@ -115,17 +116,17 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 		return dto.LoginResponse{}, util.UnauthorizedException("Failed to generate refresh token")
 	}
 
-	refreshTTL := util.GetEnvTime("JWT_REFRESH_TTL", "604800s")
+	refreshTTL := util.GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
 	redisKey := "refresh_token:" + u.ID.String()
 	_ = util.SetCache(s.rdb, redisKey, refreshToken, refreshTTL)
 
-	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", "900s").Seconds())
+	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl).Seconds())
 
 	return dto.LoginResponse{
-		AccessToken:   accessToken,
-		RefreshToken: refreshToken,
-		ExpiresIn:   expiresIn,
-		TokenType:   "Bearer",
+		AccessToken:   	accessToken,
+		RefreshToken: 	refreshToken,
+		ExpiresIn:   	expiresIn,
+		TokenType:   	constant.BearerPrefix,
 	}, nil
 }
 
@@ -156,16 +157,16 @@ func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshToke
 		return dto.RefreshTokenResponse{}, util.UnauthorizedException("Failed to generate refresh token")
 	}
 
-	refreshTTL := util.GetEnvTime("JWT_REFRESH_TTL", "604800s")
+	refreshTTL := util.GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
 	_ = util.SetCache(s.rdb, redisKey, newRefreshToken, refreshTTL)
 
-	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", "900s").Seconds())
+	expiresIn := int64(util.GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl).Seconds())
 
 	return dto.RefreshTokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: newRefreshToken,
-		ExpiresIn:   expiresIn,
-		TokenType:   "Bearer",
+		AccessToken:  	accessToken,
+		RefreshToken: 	newRefreshToken,
+		ExpiresIn:   	expiresIn,
+		TokenType:   	constant.BearerPrefix,
 	}, nil
 }
 
@@ -181,7 +182,7 @@ func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {
     cacheKey := "reset_password:" + token
 
     // Save token to Redis with TTL 5 minutes
-	ttl := util.GetEnvTime("REDIS_CACHE_TTL", "5m")
+	ttl := util.GetEnvTime("REDIS_CACHE_TTL", constant.RedisCacheTtl)
     err = util.SetCache(s.rdb, cacheKey, u.Email, ttl)
     if err != nil {
         return err

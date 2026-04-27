@@ -32,8 +32,8 @@ func main() {
 	// Connect redis
 	rdb := config.ConnectRedis()
 
-	// Setup router
-	r := app.SetupRouter(db, rdb)
+	// Init setup for all dependencies
+	r := app.Setup(db, rdb)
 
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {

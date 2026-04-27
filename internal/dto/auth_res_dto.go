@@ -1,6 +1,6 @@
 package dto
 
-import "e-shop-api/internal/model"
+import "e-shop-api/internal/constant"
 
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
@@ -17,9 +17,9 @@ type RefreshTokenResponse struct {
 }
 
 type UserResponse struct {
-	ID       string			`json:"id"`
-	Username string    		`json:"username"`
-	Email    string    		`json:"email"`
-	Role     model.UserRole	`json:"role"`
-	Picture  string			`json:"picture"`
+	ID       string				`json:"id"`
+	Username string    			`json:"username"`
+	Email    string    			`json:"email"`
+	Role     constant.UserRole	`json:"role"`
+	Picture  string				`json:"picture"`
 }
