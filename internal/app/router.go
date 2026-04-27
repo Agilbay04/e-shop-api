@@ -64,7 +64,7 @@ func registerStoreRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareR
 	stores := rg.Group("/stores")
 	{
 		// Publicly available for all authenticated users
-		stores.GET("/", h.StoreHandler.GetStores)
+		stores.GET("/", h.StoreHandler.Index)
 
 		// Actions requiring Seller or Admin privileges
 		privileged := stores.Group("/")
@@ -99,7 +99,7 @@ func registerProductRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *Middlewar
 func registerOrderRoutes(rg *gin.RouterGroup, h *HandlerRegistry, m *MiddlewareRegistry) {
 	orders := rg.Group("/orders")
 	{
-		orders.GET("/", h.OrderHandler.GetOrders)
+		orders.GET("/", h.OrderHandler.Index)
 
 		buyerOnly := orders.Group("/")
 		buyerOnly.Use(m.Buyer)

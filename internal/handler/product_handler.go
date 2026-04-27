@@ -18,12 +18,25 @@ func NewProductHandler(productService service.ProductService) *ProductHandler {
 	}
 }
 
+var productAllowedSortBy = map[string]bool{
+	"created_at": true,
+	"updated_at": true,
+	"price":     true,
+	"name":      true,
+	"stock":     true,
+}
+
 func (ph *ProductHandler) Index(ctx *gin.Context) {
 	var req dto.QueryProductRequest
 	user := util.GetCurrentUser(ctx)
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.Error(util.BadRequestException("Invalid query parameters", err))
+		return
+	}
+
+	if !dto.ValidateSortByPattern(req.SortBy) || !dto.IsAllowedSortBy(req.SortBy, productAllowedSortBy) {
+		ctx.Error(util.BadRequestException("Invalid sort_by value. Allowed: created_at, updated_at, price, name, stock", nil))
 		return
 	}
 

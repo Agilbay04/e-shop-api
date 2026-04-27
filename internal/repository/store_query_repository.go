@@ -48,22 +48,23 @@ func (r *storeQueryRepository) FindAllPagination(req dto.QueryStoreParam) ([]dto
 	var stores []model.Store
 	var total int64
 
+	countQuery := r.db.Model(&model.Store{})
+	r.applyFilters(countQuery, req)
+	if err := countQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
 	query := r.db.Model(&model.Store{})
-
-	if req.Search != "" {
-		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
-	}
-
-	if req.UserID != nil {
-		query = query.Where("user_id = ?", *req.UserID)
-	}
-
-	query.Count(&total)
+	r.applyFilters(query, req)
 
 	err := query.Scopes(util.Paginate(req.Page, req.Limit)).
 		Order(req.SortBy + " " + req.OrderBy).
 		Preload("User").
 		Find(&stores).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
 
 	storesResponse := make([]dto.StoreResponse, len(stores))
 	for i, store := range stores {
@@ -79,12 +80,22 @@ func (r *storeQueryRepository) FindAllPagination(req dto.QueryStoreParam) ([]dto
 			UserID:      store.UserID,
 			Username:    store.User.Username,
 			CreatedAt:   store.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:   store.UpdatedAt.Format(time.RFC3339),
-			DeletedAt:   deletedAt,
+			UpdatedAt:  store.UpdatedAt.Format(time.RFC3339),
+			DeletedAt:  deletedAt,
 		}
 	}
 
-	return storesResponse, total, err
+	return storesResponse, total, nil
+}
+
+func (r *storeQueryRepository) applyFilters(query *gorm.DB, req dto.QueryStoreParam) *gorm.DB {
+	if req.Search != "" {
+		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
+	}
+	if req.UserID != nil {
+		query = query.Where("user_id = ?", *req.UserID)
+	}
+	return query
 }
 
 func (r *storeQueryRepository) FindByIDWithLock(tx *gorm.DB, id string) (*model.Store, error) {

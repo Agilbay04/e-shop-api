@@ -18,6 +18,36 @@ func NewOrderHandler(orderService service.OrderService) *OrderHandler {
 	}
 }
 
+var orderAllowedSortBy = map[string]bool{
+	"created_at":  true,
+	"updated_at":  true,
+	"grand_total": true,
+	"status":     true,
+}
+
+func (h *OrderHandler) Index(ctx *gin.Context) {
+	var req dto.QueryOrderParam
+	user := util.GetCurrentUser(ctx)
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.Error(util.BadRequestException("Invalid query parameters", err))
+		return
+	}
+
+	if !dto.ValidateSortByPattern(req.SortBy) || !dto.IsAllowedSortBy(req.SortBy, orderAllowedSortBy) {
+		ctx.Error(util.BadRequestException("Invalid sort_by value. Allowed: created_at, updated_at, grand_total, status", nil))
+		return
+	}
+
+	orders, total, err := h.orderService.GetOrders(req, user)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	OkPagination(ctx, orders, total, req.PaginationParam, "Success retrieve data")
+}
+
 func (h *OrderHandler) CreateOrder(ctx *gin.Context) {
 	req := dto.OrderRequest{
 		IsCheckout: true,
@@ -93,22 +123,4 @@ func (h *OrderHandler) ConfirmOrder(ctx *gin.Context) {
 	}
 
 	Ok(ctx, res, "Order has been confirmed")
-}
-
-func (h *OrderHandler) GetOrders(ctx *gin.Context) {
-	var req dto.QueryOrderParam
-	user := util.GetCurrentUser(ctx)
-
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.Error(util.BadRequestException("Invalid query parameters", err))
-		return
-	}
-
-	orders, total, err := h.orderService.GetOrders(req, user)
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	OkPagination(ctx, orders, total, req.PaginationParam, "Success retrieve data")
 }

@@ -8,11 +8,11 @@ import (
 
 type Order struct {
 	Base
-	UserID      uuid.UUID   			`gorm:"type:uuid;column:user_id" json:"user_id"`
-	GrandTotal  int     				`gorm:"type:int;not null;column:grand_total" json:"grand_total"`
-	Status      constant.OrderStatus	`gorm:"type:varchar(20);column:status;default:draft" json:"status"`
-	OrderItems  []OrderItem 			`gorm:"foreignKey:OrderID"`
-	User        User        			`gorm:"foreignKey:UserID" json:"user"`
+	UserID    	uuid.UUID           	`gorm:"type:uuid;index;column:user_id" json:"user_id"`
+	GrandTotal 	int                		`gorm:"type:int;not null;index;column:grand_total" json:"grand_total"`
+	Status    	constant.OrderStatus 	`gorm:"type:varchar(20);index;column:status;default:draft" json:"status"`
+	OrderItems 	[]OrderItem         	`gorm:"foreignKey:OrderID"`
+	User     	User              		`gorm:"foreignKey:UserID" json:"user"`
 }
 
 func (Order) TableName() string {

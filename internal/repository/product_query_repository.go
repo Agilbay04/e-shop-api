@@ -29,45 +29,27 @@ func NewProductQueryRepository(db *gorm.DB) ProductQueryRepository {
 func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error) {
 	var products []model.Product
 	var total int64
-	
+
+	// Apply filters for COUNT query
+	countQuery := r.db.Model(&model.Product{})
+	r.applyFilters(countQuery, req)
+	if err := countQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply filters for SELECT query (fresh query)
 	query := r.db.Model(&model.Product{})
-
-	// Filtering - Search by Name (Case Insensitive)
-	if req.Search != "" {
-		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
-	}
-
-	// Filtering - Store ID
-	if req.StoreID != nil {
-		query = query.Where("store_id = ?", *req.StoreID)
-	}
-
-	// Filtering ID
-	if req.ID != nil {
-		query = query.Where("id = ?", *req.ID)
-	}
-
-	// Filtering - Price Range
-	if req.MinPrice != nil {
-		query = query.Where("price >= ?", *req.MinPrice)
-	}
-	if req.MaxPrice != nil {
-		query = query.Where("price <= ?", *req.MaxPrice)
-	}
-
-	// Filtering - Is Active
-	if req.IsActive != nil {
-		query = query.Where("is_active = ?", *req.IsActive)
-	}
-
-	// Count Total Data (before pagination)
-	query.Count(&total)
+	r.applyFilters(query, req)
 
 	// Pagination & Sorting
 	err := query.Scopes(util.Paginate(req.Page, req.Limit)).
 		Order(req.SortBy + " " + req.OrderBy).
 		Preload("Store").
 		Find(&products).Error
+
+	if err != nil {
+		return nil, 0, err
+	}
 
 	// Map model.Product to dto.ProductResponse
 	productsResponse := make([]dto.ProductResponse, len(products))
@@ -79,18 +61,40 @@ func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest, 
 			Price:       product.Price,
 			Stock:       product.Stock,
 			Unit:        product.Unit,
-			IsActive: 	 product.IsActive,
-			CreatedAt: 	 product.CreatedAt.Format(time.RFC3339),
-			CreatedBy: 	 product.CreatedBy.String(),
-			UpdatedAt: 	 product.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy: 	 product.UpdatedBy.String(),
-			DeletedAt:   product.DeletedAt.Time.Format(time.RFC3339),
-			StoreID:     product.StoreID.String(),
-			StoreName:   product.Store.Name,
+			IsActive:    product.IsActive,
+			CreatedAt:   product.CreatedAt.Format(time.RFC3339),
+			CreatedBy:  product.CreatedBy.String(),
+			UpdatedAt: product.UpdatedAt.Format(time.RFC3339),
+			UpdatedBy:  product.UpdatedBy.String(),
+			DeletedAt:  product.DeletedAt.Time.Format(time.RFC3339),
+			StoreID:    product.StoreID.String(),
+			StoreName: product.Store.Name,
 		}
 	}
 
-	return productsResponse, total, err
+	return productsResponse, total, nil
+}
+
+func (r *productQueryRepository) applyFilters(query *gorm.DB, req dto.QueryProductRequest) *gorm.DB {
+	if req.Search != "" {
+		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
+	}
+	if req.StoreID != nil {
+		query = query.Where("store_id = ?", *req.StoreID)
+	}
+	if req.ID != nil {
+		query = query.Where("id = ?", *req.ID)
+	}
+	if req.MinPrice != nil {
+		query = query.Where("price >= ?", *req.MinPrice)
+	}
+	if req.MaxPrice != nil {
+		query = query.Where("price <= ?", *req.MaxPrice)
+	}
+	if req.IsActive != nil {
+		query = query.Where("is_active = ?", *req.IsActive)
+	}
+	return query
 }
 
 func (r *productQueryRepository) FindBySlug(slug string) (*model.Product, error) {

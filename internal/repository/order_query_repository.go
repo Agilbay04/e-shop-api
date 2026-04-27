@@ -61,22 +61,14 @@ func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, 
 	var orders []model.Order
 	var total int64
 
+	countQuery := r.db.Model(&model.Order{})
+	r.applyFilters(countQuery, userID, storeID, statuses)
+	if err := countQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
 	query := r.db.Model(&model.Order{})
-
-	if userID != "" {
-		query = query.Where("user_id = ?", userID)
-	}
-
-	if storeID != "" {
-		query = query.Joins("JOIN order_items ON order_items.order_id = orders.id").
-			Where("order_items.store_id = ?", storeID)
-	}
-
-	if len(statuses) > 0 {
-		query = query.Where("status IN ?", statuses)
-	}
-
-	query.Count(&total)
+	r.applyFilters(query, userID, storeID, statuses)
 
 	err := query.Scopes(util.Paginate(req.Page, req.Limit)).
 		Order(req.SortBy + " " + req.OrderBy).
@@ -100,9 +92,9 @@ func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, 
 				ProductID:   item.ProductID.String(),
 				ProductName: item.Product.Name,
 				Quantity:    item.Quantity,
-				Unit:        item.Product.Unit,
-				Price:       item.Price,
-				SubTotal:    item.SubTotal,
+				Unit:       item.Product.Unit,
+				Price:      item.Price,
+				SubTotal:   item.SubTotal,
 			}
 		}
 
@@ -111,10 +103,24 @@ func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, 
 			UserID:     order.UserID.String(),
 			Username:   order.User.Username,
 			GrandTotal: order.GrandTotal,
-			Status:     order.Status,
+			Status:    order.Status,
 			OrderItems: orderItems,
 		}
 	}
 
 	return responses, total, nil
+}
+
+func (r *orderQueryRepository) applyFilters(query *gorm.DB, userID string, storeID string, statuses []constant.OrderStatus) *gorm.DB {
+	if userID != "" {
+		query = query.Where("user_id = ?", userID)
+	}
+	if storeID != "" {
+		query = query.Joins("JOIN order_items ON order_items.order_id = orders.id").
+			Where("order_items.store_id = ?", storeID)
+	}
+	if len(statuses) > 0 {
+		query = query.Where("status IN ?", statuses)
+	}
+	return query
 }
