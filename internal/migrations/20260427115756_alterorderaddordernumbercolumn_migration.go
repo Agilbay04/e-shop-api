@@ -11,10 +11,10 @@ func AlterOrderAddOrderNumberColumnMigration() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "20260427115756",
 		Migrate: func(tx *gorm.DB) error {
-			return tx.Migrator().AddColumn(&model.Order{}, "order_number")
+			return tx.Migrator().AddColumn(&models.Order{}, "order_number")
 		},
 		Rollback: func(tx *gorm.DB) error {
-			return tx.Migrator().DropColumn(&model.Order{}, "order_number")
+			return tx.Migrator().DropColumn(&models.Order{}, "order_number")
 		},
 	}
 }

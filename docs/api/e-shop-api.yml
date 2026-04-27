@@ -67,6 +67,25 @@ items:
           followRedirects: true
           maxRedirects: 5
       - info:
+          name: Refresh Token
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/auth/refresh-token'
+          body:
+            type: json
+            data: |-
+              {
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzU3ODdlNDItZmMwZC00MDU4LWI3MDItNDc3NjQ0NjQwYzJkIiwiZXhwIjoxNzc3ODY2OTQ4LCJpYXQiOjE3NzcyNjIxNDh9.-rkIWzZ8VPHnbvA8LMTYPhwm-gR3uzEnZtbe1XAn9uc"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
           name: Register
           type: http
           seq: 3
@@ -109,25 +128,6 @@ items:
           timeout: 0
           followRedirects: true
           maxRedirects: 5
-      - info:
-          name: Refresh Token
-          type: http
-          seq: 2
-        http:
-          method: POST
-          url: '{{base_url}}/api/v1/auth/refresh-token'
-          body:
-            type: json
-            data: |-
-              {
-                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzU3ODdlNDItZmMwZC00MDU4LWI3MDItNDc3NjQ0NjQwYzJkIiwiZXhwIjoxNzc3NzQwNDU0LCJpYXQiOjE3NzcxMzU2NTR9.2T6RLeeUKTCwOZjfsSCTQz4e0C7RR8osf3PyVp8qLQo"
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
   - info:
       name: health
       type: folder
@@ -155,6 +155,146 @@ items:
         http:
           method: GET
           url: '{{base_url}}/ready'
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+  - info:
+      name: product
+      type: folder
+      seq: 5
+    request:
+      auth: inherit
+    items:
+      - info:
+          name: Product - Activate
+          type: http
+          seq: 5
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/products/activate'
+          body:
+            type: json
+            data: |-
+              {
+                "id": "a5b8f242-44c6-4c93-8127-7ed78327861e",
+                "is_active": true
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Create
+          type: http
+          seq: 2
+        http:
+          method: POST
+          url: '{{base_url}}/api/v1/products'
+          body:
+            type: json
+            data: |-
+              {
+                "name": "Cat",
+                "description": "Cat kualitas bagus",
+                "price": 80000,
+                "stock": 500,
+                "unit": "bucket"
+              }
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Delete
+          type: http
+          seq: 4
+        http:
+          method: PATCH
+          url: '{{base_url}}/api/v1/products/:id'
+          params:
+            - name: id
+              value: a5b8f242-44c6-4c93-8127-7ed78327861e
+              type: path
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Get All/By ID
+          type: http
+          seq: 1
+        http:
+          method: GET
+          url: '{{base_url}}/api/v1/products?page=1&limit=10&sort_by=created_at&order_by=desc&search='
+          params:
+            - name: page
+              value: '1'
+              type: query
+            - name: limit
+              value: '10'
+              type: query
+            - name: sort_by
+              value: created_at
+              type: query
+            - name: order_by
+              value: desc
+              type: query
+            - name: search
+              value: ''
+              type: query
+            - name: store_id
+              value: 59e3e777-7050-4b69-b7ee-da488d54bd61
+              type: query
+              disabled: true
+            - name: id
+              value: 703650f9-5d99-4f75-9d27-40914fd84150
+              type: query
+              disabled: true
+            - name: min_price
+              value: ''
+              type: query
+              disabled: true
+            - name: max_price
+              value: ''
+              type: query
+              disabled: true
+          auth: inherit
+        settings:
+          encodeUrl: true
+          timeout: 0
+          followRedirects: true
+          maxRedirects: 5
+      - info:
+          name: Product - Update
+          type: http
+          seq: 3
+        http:
+          method: PUT
+          url: '{{base_url}}/api/v1/products/:id'
+          params:
+            - name: id
+              value: a5b8f242-44c6-4c93-8127-7ed78327861e
+              type: path
+          body:
+            type: json
+            data: |-
+              {
+                "name": "Genteng Merah",
+                "description": "Genteng kualitas bagus",
+                "price": 11500,
+                "stock": 10000,
+                "unit": "item"
+                //"is_active": true
+              }
           auth: inherit
         settings:
           encodeUrl: true
@@ -302,146 +442,6 @@ items:
                     "quantity": 25
                   }
                 ]
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-  - info:
-      name: product
-      type: folder
-      seq: 5
-    request:
-      auth: inherit
-    items:
-      - info:
-          name: Product - Activate
-          type: http
-          seq: 5
-        http:
-          method: PATCH
-          url: '{{base_url}}/api/v1/products/activate'
-          body:
-            type: json
-            data: |-
-              {
-                "id": "a5b8f242-44c6-4c93-8127-7ed78327861e",
-                "is_active": true
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Product - Create
-          type: http
-          seq: 2
-        http:
-          method: POST
-          url: '{{base_url}}/api/v1/products'
-          body:
-            type: json
-            data: |-
-              {
-                "name": "Cat",
-                "description": "Cat kualitas bagus",
-                "price": 80000,
-                "stock": 500,
-                "unit": "bucket"
-              }
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Product - Delete
-          type: http
-          seq: 4
-        http:
-          method: PATCH
-          url: '{{base_url}}/api/v1/products/:id'
-          params:
-            - name: id
-              value: a5b8f242-44c6-4c93-8127-7ed78327861e
-              type: path
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Product - Get All/By ID
-          type: http
-          seq: 1
-        http:
-          method: GET
-          url: '{{base_url}}/api/v1/products?page=1&limit=10&sort_by=created_at&order_by=desc&search='
-          params:
-            - name: page
-              value: '1'
-              type: query
-            - name: limit
-              value: '10'
-              type: query
-            - name: sort_by
-              value: created_at
-              type: query
-            - name: order_by
-              value: desc
-              type: query
-            - name: search
-              value: ''
-              type: query
-            - name: store_id
-              value: 59e3e777-7050-4b69-b7ee-da488d54bd61
-              type: query
-              disabled: true
-            - name: id
-              value: 703650f9-5d99-4f75-9d27-40914fd84150
-              type: query
-              disabled: true
-            - name: min_price
-              value: ''
-              type: query
-              disabled: true
-            - name: max_price
-              value: ''
-              type: query
-              disabled: true
-          auth: inherit
-        settings:
-          encodeUrl: true
-          timeout: 0
-          followRedirects: true
-          maxRedirects: 5
-      - info:
-          name: Product - Update
-          type: http
-          seq: 3
-        http:
-          method: PUT
-          url: '{{base_url}}/api/v1/products/:id'
-          params:
-            - name: id
-              value: a5b8f242-44c6-4c93-8127-7ed78327861e
-              type: path
-          body:
-            type: json
-            data: |-
-              {
-                "name": "Genteng Merah",
-                "description": "Genteng kualitas bagus",
-                "price": 11500,
-                "stock": 10000,
-                "unit": "item"
-                //"is_active": true
               }
           auth: inherit
         settings:
@@ -629,5 +629,5 @@ extensions:
     ignore:
       - node_modules
       - .git
-    exportedAt: '2026-04-25T16:55:50.314Z'
+    exportedAt: '2026-04-27T09:57:52.385Z'
     exportedUsing: Bruno

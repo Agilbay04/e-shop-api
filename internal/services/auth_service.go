@@ -62,7 +62,7 @@ func (s *authService) Register(req dtos.RegisterRequest) (dtos.UserResponse, err
 		return dtos.UserResponse{}, utils.BadRequestException("Email already use by another account", err)
 	}
 
-	newUser := model.User{
+	newUser := models.User{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
@@ -89,7 +89,7 @@ func (s *authService) Register(req dtos.RegisterRequest) (dtos.UserResponse, err
 func (s *authService) Login(req dtos.LoginRequest) (dtos.LoginResponse, error) {
 	cacheKey := "user:email:" + req.Email
 
-	u, err := utils.GetCache[*model.User](s.rdb, cacheKey)
+	u, err := utils.GetCache[*models.User](s.rdb, cacheKey)
 
 	if err != nil {
 		u, err = s.userQueryRepo.FindByEmail(req.Email)
@@ -97,7 +97,7 @@ func (s *authService) Login(req dtos.LoginRequest) (dtos.LoginResponse, error) {
 			return dtos.LoginResponse{}, utils.UnprocessableEntityException("User email " + req.Email + " is not registered")
 		}
 
-		ttl := utils.GetEnvTime("REDIS_CACHE_TTL", constant.RedisCacheTtl)
+		ttl := utils.GetEnvTime("REDIS_CACHE_TTL", constants.RedisCacheTtl)
 		_ = utils.SetCache(s.rdb, cacheKey, u, ttl)
 	}
 
@@ -116,17 +116,19 @@ func (s *authService) Login(req dtos.LoginRequest) (dtos.LoginResponse, error) {
 		return dtos.LoginResponse{}, utils.UnauthorizedException("Failed to generate refresh token")
 	}
 
-	refreshTTL := utils.GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
+	refreshTTL := utils.GetEnvTime("JWT_REFRESH_TTL", constants.JwtRefreshTtl)
 	redisKey := "refresh_token:" + u.ID.String()
 	_ = utils.SetCache(s.rdb, redisKey, refreshToken, refreshTTL)
 
-	expiresIn := int64(utils.GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl).Seconds())
+	accessTTL := utils.GetEnvTime("JWT_ACCESS_TTL", constants.JwtAccessTtl)
+	intAccessTTL := int64(accessTTL.Seconds())
+	expiresIn := intAccessTTL
 
 	return dtos.LoginResponse{
-		AccessToken:   	accessToken,
-		RefreshToken: 	refreshToken,
-		ExpiresIn:   	expiresIn,
-		TokenType:   	constant.BearerPrefix,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    expiresIn,
+		TokenType:    constants.BearerPrefix,
 	}, nil
 }
 
@@ -157,40 +159,40 @@ func (s *authService) RefreshToken(req dtos.RefreshTokenRequest) (dtos.RefreshTo
 		return dtos.RefreshTokenResponse{}, utils.UnauthorizedException("Failed to generate refresh token")
 	}
 
-	refreshTTL := utils.GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
+	refreshTTL := utils.GetEnvTime("JWT_REFRESH_TTL", constants.JwtRefreshTtl)
 	_ = utils.SetCache(s.rdb, redisKey, newRefreshToken, refreshTTL)
 
-	expiresIn := int64(utils.GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl).Seconds())
+	expiresIn := int64(utils.GetEnvTime("JWT_ACCESS_TTL", constants.JwtAccessTtl).Seconds())
 
 	return dtos.RefreshTokenResponse{
-		AccessToken:  	accessToken,
-		RefreshToken: 	newRefreshToken,
-		ExpiresIn:   	expiresIn,
-		TokenType:   	constant.BearerPrefix,
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+		ExpiresIn:    expiresIn,
+		TokenType:    constants.BearerPrefix,
 	}, nil
 }
 
 func (s *authService) ForgotPassword(req dtos.ForgotPasswordRequest) error {
-    // Check email is registered
-    u, err := s.userQueryRepo.FindByEmail(req.Email)
-    if err != nil {
-        return utils.UnprocessableEntityException("Email not found")
-    }
+	// Check email is registered
+	u, err := s.userQueryRepo.FindByEmail(req.Email)
+	if err != nil {
+		return utils.UnprocessableEntityException("Email not found")
+	}
 
-    // Generate new token for reset password
-    token := uuid.New().String()
-    cacheKey := "reset_password:" + token
+	// Generate new token for reset password
+	token := uuid.New().String()
+	cacheKey := "reset_password:" + token
 
-    // Save token to Redis with TTL 5 minutes
-	ttl := utils.GetEnvTime("REDIS_CACHE_TTL", constant.RedisCacheTtl)
-    err = utils.SetCache(s.rdb, cacheKey, u.Email, ttl)
-    if err != nil {
-        return err
-    }
+	// Save token to Redis with TTL 5 minutes
+	ttl := utils.GetEnvTime("REDIS_CACHE_TTL", constants.RedisCacheTtl)
+	err = utils.SetCache(s.rdb, cacheKey, u.Email, ttl)
+	if err != nil {
+		return err
+	}
 
-    // Set email body
-    resetLink := fmt.Sprintf("http://localhost:3000/reset-password?token=%s", token)
-    emailBody := fmt.Sprintf(`
+	// Set email body
+	resetLink := fmt.Sprintf("http://localhost:3000/reset-password?token=%s", token)
+	emailBody := fmt.Sprintf(`
         <h1>Reset Password Request</h1>
         <p>Halo %s, we received a request to reset your password.</p>
         <p>Click the link below or copy and paste it into your browser (link expires in 5 minutes):</p>
@@ -198,10 +200,10 @@ func (s *authService) ForgotPassword(req dtos.ForgotPasswordRequest) error {
         <p>If you did not make this request, please ignore this email.</p>
     `, u.Username, resetLink)
 
-    // Send reset password email
+	// Send reset password email
 	s.notifService.QueueSendEmail(
-		u.Email, 
-		"Reset Password", 
+		u.Email,
+		"Reset Password",
 		emailBody,
 	)
 
@@ -209,35 +211,35 @@ func (s *authService) ForgotPassword(req dtos.ForgotPasswordRequest) error {
 }
 
 func (s *authService) ResetPassword(req dtos.ResetPasswordRequest) error {
-    cacheKey := "reset_password:" + req.Token
+	cacheKey := "reset_password:" + req.Token
 
-    // Get email from Redis based on token
-    email, err := utils.GetCache[string](s.rdb, cacheKey)
-    if err != nil {
-        return utils.UnauthorizedException("Token invalid or expired")
-    }
+	// Get email from Redis based on token
+	email, err := utils.GetCache[string](s.rdb, cacheKey)
+	if err != nil {
+		return utils.UnauthorizedException("Token invalid or expired")
+	}
 
-    // Get data user by email
-    u, err := s.userQueryRepo.FindByEmail(email)
-    if err != nil {
-        return err
-    }
+	// Get data user by email
+	u, err := s.userQueryRepo.FindByEmail(email)
+	if err != nil {
+		return err
+	}
 
-    // Hash new password
-    hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
-    u.Password = string(hashedPassword)
+	// Hash new password
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	u.Password = string(hashedPassword)
 
-    // Update password
-    if err := s.userRepo.Update(s.db, u); err != nil {
-        return err
-    }
+	// Update password
+	if err := s.userRepo.Update(s.db, u); err != nil {
+		return err
+	}
 
-    // Delete token and email from Redis
-    _ = utils.DeleteCache(s.rdb, cacheKey)
-    _ = utils.DeleteCache(s.rdb, "user:email:"+email)
+	// Delete token and email from Redis
+	_ = utils.DeleteCache(s.rdb, cacheKey)
+	_ = utils.DeleteCache(s.rdb, "user:email:"+email)
 
-    // Revoke all refresh tokens (force logout all devices)
-    _ = utils.DeleteCache(s.rdb, "refresh_token:"+u.ID.String())
+	// Revoke all refresh tokens (force logout all devices)
+	_ = utils.DeleteCache(s.rdb, "refresh_token:"+u.ID.String())
 
-    return nil
+	return nil
 }

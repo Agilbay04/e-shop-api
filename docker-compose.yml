@@ -2,7 +2,7 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: e_shop_db
+    container_name: go-psql
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -12,5 +12,14 @@ services:
     volumes:
       - e_shop_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: go-redis
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - go_redis_data:/data
+
 volumes:
   e_shop_data:
+  go_redis_data:

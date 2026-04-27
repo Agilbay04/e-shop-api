@@ -28,18 +28,18 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 
 	// Global Middleware
 	// Note: please don't change the order
-	app.Use(middlewares.RequestID()) 		  //# Request ID - must be first for logging
-	app.Use(middlewares.LoggerMiddleware()) 	  //# Logging HTTP request
-	app.Use(gin.Recovery()) 				  //# Recover from panic
-	app.Use(middlewares.InitCORS()) 			  //# CORS middleware
+	app.Use(middlewares.RequestID()) 		   //# Request ID - must be first for logging
+	app.Use(middlewares.LoggerMiddleware())    //# Logging HTTP request
+	app.Use(gin.Recovery()) 				   //# Recover from panic
+	app.Use(middlewares.InitCORS()) 		   //# CORS middleware
 	app.Use(middlewares.ResponseMiddleware())  //# Response middleware
 
 	// Selective Middlewares
 	return &MiddlewareRegistry{
         Auth:      middlewares.AuthMiddleware(),
-		Admin:     middlewares.RoleMiddleware(constant.Admin),
-		Seller:    middlewares.RoleMiddleware(constant.Seller, constant.Admin),
-		Buyer:     middlewares.RoleMiddleware(constant.Buyer),
+		Admin:     middlewares.RoleMiddleware(constants.Admin),
+		Seller:    middlewares.RoleMiddleware(constants.Seller, constants.Admin),
+		Buyer:     middlewares.RoleMiddleware(constants.Buyer),
 		RequestID: middlewares.RequestID(),
 
 		// Register new middlewares here

@@ -1,13 +1,14 @@
 package seeders
 
 import (
-	"errors"
 	"e-shop-api/internal/models"
+	"errors"
+
 	"gorm.io/gorm"
 )
 
 func SeedStores(db *gorm.DB) error {
-	var seller model.User
+	var seller models.User
 	// Find user with role "seller"
 	err := db.Where("role = ?", "seller").First(&seller).Error
 	if err != nil {
@@ -17,16 +18,16 @@ func SeedStores(db *gorm.DB) error {
 		return err
 	}
 
-	stores := []model.Store{
+	stores := []models.Store{
 		{
-			Name		: "Gadget Store",
-			Description	: "Toko elektronik terlengkap",
-			UserID		: seller.ID,
+			Name:        "Gadget Store",
+			Description: "Toko elektronik terlengkap",
+			UserID:      seller.ID,
 		},
 	}
 
 	for _, s := range stores {
-		err := db.FirstOrCreate(&s, model.Store{Name: s.Name}).Error
+		err := db.FirstOrCreate(&s, models.Store{Name: s.Name}).Error
 		if err != nil {
 			return err
 		}

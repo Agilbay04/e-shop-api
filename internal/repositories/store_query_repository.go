@@ -11,11 +11,11 @@ import (
 )
 
 type StoreQueryRepository interface {
-	FindAll() ([]model.Store, error)
-	FindByID(id string) (*model.Store, error)
-	FindByUserID(userID string) (*model.Store, error)
+	FindAll() ([]models.Store, error)
+	FindByID(id string) (*models.Store, error)
+	FindByUserID(userID string) (*models.Store, error)
 	FindAllPagination(req dtos.QueryStoreParam) ([]dtos.StoreResponse, int64, error)
-	FindByIDWithLock(tx *gorm.DB, id string) (*model.Store, error)
+	FindByIDWithLock(tx *gorm.DB, id string) (*models.Store, error)
 }
 
 type storeQueryRepository struct {
@@ -26,35 +26,35 @@ func NewStoreQueryRepository(db *gorm.DB) StoreQueryRepository {
 	return &storeQueryRepository{db}
 }
 
-func (r *storeQueryRepository) FindAll() ([]model.Store, error) {
-	var stores []model.Store
+func (r *storeQueryRepository) FindAll() ([]models.Store, error) {
+	var stores []models.Store
 	err := r.db.Preload("User").Find(&stores).Error
 	return stores, err
 }
 
-func (r *storeQueryRepository) FindByID(id string) (*model.Store, error) {
-	var store model.Store
+func (r *storeQueryRepository) FindByID(id string) (*models.Store, error) {
+	var store models.Store
 	err := r.db.Preload("User").Where("id = ?", id).First(&store).Error
 	return &store, err
 }
 
-func (r *storeQueryRepository) FindByUserID(userID string) (*model.Store, error) {
-	var store model.Store
+func (r *storeQueryRepository) FindByUserID(userID string) (*models.Store, error) {
+	var store models.Store
 	err := r.db.Where("user_id = ?", userID).First(&store).Error
 	return &store, err
 }
 
 func (r *storeQueryRepository) FindAllPagination(req dtos.QueryStoreParam) ([]dtos.StoreResponse, int64, error) {
-	var stores []model.Store
+	var stores []models.Store
 	var total int64
 
-	countQuery := r.db.Model(&model.Store{})
+	countQuery := r.db.Model(&models.Store{})
 	r.applyFilters(countQuery, req)
 	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	query := r.db.Model(&model.Store{})
+	query := r.db.Model(&models.Store{})
 	r.applyFilters(query, req)
 
 	err := query.Scopes(utils.Paginate(req.Page, req.Limit)).
@@ -80,8 +80,8 @@ func (r *storeQueryRepository) FindAllPagination(req dtos.QueryStoreParam) ([]dt
 			UserID:      store.UserID,
 			Username:    store.User.Username,
 			CreatedAt:   store.CreatedAt.Format(time.RFC3339),
-			UpdatedAt:  store.UpdatedAt.Format(time.RFC3339),
-			DeletedAt:  deletedAt,
+			UpdatedAt:   store.UpdatedAt.Format(time.RFC3339),
+			DeletedAt:   deletedAt,
 		}
 	}
 
@@ -98,8 +98,8 @@ func (r *storeQueryRepository) applyFilters(query *gorm.DB, req dtos.QueryStoreP
 	return query
 }
 
-func (r *storeQueryRepository) FindByIDWithLock(tx *gorm.DB, id string) (*model.Store, error) {
-	var store model.Store
+func (r *storeQueryRepository) FindByIDWithLock(tx *gorm.DB, id string) (*models.Store, error) {
+	var store models.Store
 
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Preload("User").

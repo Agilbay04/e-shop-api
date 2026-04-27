@@ -13,7 +13,7 @@ import (
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Get Authorization header
-		authHeader := ctx.GetHeader(constant.AuthorizationHeader)
+		authHeader := ctx.GetHeader(constants.AuthorizationHeader)
 		if authHeader == "" {
 			ctx.Error(utils.UnauthorizedException("Missing authorization header"))
 			ctx.Abort()
@@ -22,7 +22,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Format Authorization header must be "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != constant.BearerPrefix {
+		if len(parts) != 2 || parts[0] != constants.BearerPrefix {
 			ctx.Error(utils.UnauthorizedException("Invalid authorization format"))
 			ctx.Abort()
 			return
@@ -53,7 +53,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func RoleMiddleware(roles ...constant.UserRole) gin.HandlerFunc {
+func RoleMiddleware(roles ...constants.UserRole) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
         // Get user from context
         val, exists := ctx.Get("currentUser")

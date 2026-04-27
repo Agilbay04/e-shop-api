@@ -13,7 +13,7 @@ type CustomClaims struct {
 	ID       string 			`json:"id"`
 	Username string    			`json:"username"`
 	Email    string    			`json:"email"`
-	Role     constant.UserRole	`json:"role"`
+	Role     constants.UserRole	`json:"role"`
 	Picture  string				`json:"picture"`
 	jwt.RegisteredClaims
 }
@@ -23,9 +23,9 @@ type RefreshClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(id, username, email, picture string, role constant.UserRole) (string, error) {
+func GenerateToken(id, username, email, picture string, role constants.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvTime("JWT_TTL", constant.JwtTtl)
+	ttl := GetEnvTime("JWT_TTL", constants.JwtTtl)
 
 	claims := CustomClaims{
 		ID:       id,
@@ -43,9 +43,9 @@ func GenerateToken(id, username, email, picture string, role constant.UserRole) 
 	return token.SignedString(secretKey)
 }
 
-func GenerateAccessToken(id, username, email, picture string, role constant.UserRole) (string, error) {
+func GenerateAccessToken(id, username, email, picture string, role constants.UserRole) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl)
+	ttl := GetEnvTime("JWT_ACCESS_TTL", constants.JwtAccessTtl)
 
 	claims := CustomClaims{
 		ID:       id,
@@ -65,7 +65,7 @@ func GenerateAccessToken(id, username, email, picture string, role constant.User
 
 func GenerateRefreshToken(userID string) (string, error) {
 	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	ttl := GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
+	ttl := GetEnvTime("JWT_REFRESH_TTL", constants.JwtRefreshTtl)
 
 	claims := RefreshClaims{
 		UserID: userID,

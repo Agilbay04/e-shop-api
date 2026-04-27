@@ -15,7 +15,7 @@ import (
 type ProductService interface {
 	CreateProduct(product dtos.CreateProductRequest, user dtos.CurrentUser) (dtos.ProductResponse, error)
 	GetPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error)
-	GetProductBySlug(slug string) (*model.Product, error)
+	GetProductBySlug(slug string) (*models.Product, error)
 	UpdateProduct(id string, req dtos.UpdateProductRequest, user dtos.CurrentUser) (dtos.ProductResponse, error)
 	DeleteProduct(id string, user dtos.CurrentUser) (dtos.ProductResponse, error)
 	ActivateProduct(req dtos.ActivateProductRequest, user dtos.CurrentUser) (dtos.ProductResponse, error)
@@ -29,10 +29,10 @@ type productService struct {
 }
 
 func NewProductService(
-	db 					*gorm.DB,
-	productRepo 		repositories.ProductRepository,
-	productQueryRepo 	repositories.ProductQueryRepository,
-	storeQueryRepo 		repositories.StoreQueryRepository,
+	db *gorm.DB,
+	productRepo repositories.ProductRepository,
+	productQueryRepo repositories.ProductQueryRepository,
+	storeQueryRepo repositories.StoreQueryRepository,
 ) ProductService {
 	return &productService{
 		db,
@@ -62,14 +62,14 @@ func (s *productService) CreateProduct(
 			utils.ForbiddenException("User " + user.Username + " doesn't have a store, can't create product")
 	}
 
-	product := model.Product{
+	product := models.Product{
 		StoreID:     userStore.ID,
 		Name:        req.Name,
 		Description: req.Description,
 		Price:       *req.Price,
 		Stock:       *req.Stock,
 		Unit:        req.Unit,
-		Base: model.Base{
+		Base: models.Base{
 			CreatedBy: uuid.MustParse(user.ID),
 			UpdatedBy: uuid.MustParse(user.ID),
 		},
@@ -102,7 +102,7 @@ func (s *productService) CreateProduct(
 }
 
 func (s *productService) GetPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error) {
-	if user.Role == constant.Seller {
+	if user.Role == constants.Seller {
 		userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil {
 			return nil, 0, err
@@ -124,7 +124,7 @@ func (s *productService) GetPagination(req dtos.QueryProductRequest, user dtos.C
 	return s.productQueryRepo.FindAllPagination(req, user)
 }
 
-func (s *productService) GetProductBySlug(slug string) (*model.Product, error) {
+func (s *productService) GetProductBySlug(slug string) (*models.Product, error) {
 	return s.productQueryRepo.FindBySlug(slug)
 }
 

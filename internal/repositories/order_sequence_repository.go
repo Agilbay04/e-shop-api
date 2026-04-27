@@ -27,14 +27,14 @@ func (r *orderSequenceRepository) GetNextSequence(tx *gorm.DB, date string) (int
 		db = tx
 	}
 
-	var seq model.OrderSequence
+	var seq models.OrderSequence
 	err := db.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("date = ?", date).
 		First(&seq).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		if err := db.Create(&model.OrderSequence{
-			Date:          date,
+		if err := db.Create(&models.OrderSequence{
+			Date:         date,
 			LastSequence: 0,
 		}).Error; err != nil {
 			return 0, err
@@ -60,8 +60,8 @@ func (r *orderSequenceRepository) GetNextSequence(tx *gorm.DB, date string) (int
 
 func InitOrderSequence(db *gorm.DB) error {
 	today := time.Now().Format("2006-01-02")
-	return db.FirstOrCreate(&model.OrderSequence{}, &model.OrderSequence{
-		Date:          today,
-		LastSequence:  0,
+	return db.FirstOrCreate(&models.OrderSequence{}, &models.OrderSequence{
+		Date:         today,
+		LastSequence: 0,
 	}).Error
 }

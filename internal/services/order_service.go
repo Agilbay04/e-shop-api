@@ -22,25 +22,25 @@ type OrderService interface {
 }
 
 type orderService struct {
-	db                  *gorm.DB
-	orderRepo           repositories.OrderRepository
-	orderQueryRepo      repositories.OrderQueryRepository
-	productRepo         repositories.ProductRepository
-	productQueryRepo   	repositories.ProductQueryRepository
-	storeQueryRepo      repositories.StoreQueryRepository
-	orderSequenceRepo   repositories.OrderSequenceRepository
-	notifService       	NotificationService
+	db                *gorm.DB
+	orderRepo         repositories.OrderRepository
+	orderQueryRepo    repositories.OrderQueryRepository
+	productRepo       repositories.ProductRepository
+	productQueryRepo  repositories.ProductQueryRepository
+	storeQueryRepo    repositories.StoreQueryRepository
+	orderSequenceRepo repositories.OrderSequenceRepository
+	notifService      NotificationService
 }
 
 func NewOrderService(
-	db 					*gorm.DB,
-	orderRepo 			repositories.OrderRepository,
-	orderQueryRepo 		repositories.OrderQueryRepository,
-	productRepo 		repositories.ProductRepository,
-	productQueryRepo 	repositories.ProductQueryRepository,
-	storeQueryRepo 		repositories.StoreQueryRepository,
-	orderSequenceRepo 	repositories.OrderSequenceRepository,
-	notifService 		NotificationService,
+	db *gorm.DB,
+	orderRepo repositories.OrderRepository,
+	orderQueryRepo repositories.OrderQueryRepository,
+	productRepo repositories.ProductRepository,
+	productQueryRepo repositories.ProductQueryRepository,
+	storeQueryRepo repositories.StoreQueryRepository,
+	orderSequenceRepo repositories.OrderSequenceRepository,
+	notifService NotificationService,
 ) OrderService {
 	return &orderService{
 		db,
@@ -60,9 +60,9 @@ func (o *orderService) CreateOrder(
 ) (dtos.OrderResponse, error) {
 	// Set Status
 	if req.IsCheckout {
-		req.Status = constant.Pending
+		req.Status = constants.Pending
 	} else {
-		req.Status = constant.Draft
+		req.Status = constants.Draft
 	}
 
 	// Begin Transaction
@@ -132,9 +132,9 @@ func (o *orderService) prepareOrderData(
 	tx *gorm.DB,
 	req dtos.OrderRequest,
 	user dtos.CurrentUser,
-) (int, []model.OrderItem, []dtos.OrderItemResponse, error) {
+) (int, []models.OrderItem, []dtos.OrderItemResponse, error) {
 	var total int
-	var items []model.OrderItem
+	var items []models.OrderItem
 	var responses []dtos.OrderItemResponse
 
 	for _, reqItem := range req.OrderItems {
@@ -158,8 +158,8 @@ func (o *orderService) prepareOrderData(
 		subTotal := product.Price * reqItem.Quantity
 		total += subTotal
 
-		items = append(items, model.OrderItem{
-			Base:      model.Base{CreatedBy: uuid.MustParse(user.ID)},
+		items = append(items, models.OrderItem{
+			Base:      models.Base{CreatedBy: uuid.MustParse(user.ID)},
 			StoreID:   product.StoreID,
 			ProductID: product.ID,
 			Quantity:  reqItem.Quantity,
@@ -193,14 +193,14 @@ func (o *orderService) saveOrder(
 	tx *gorm.DB,
 	userID string,
 	total int,
-	status constant.OrderStatus,
+	status constants.OrderStatus,
 	orderNumber string,
-) (*model.Order, error) {
-	newOrder := &model.Order{
-		Base:        model.Base{CreatedBy: uuid.MustParse(userID)},
+) (*models.Order, error) {
+	newOrder := &models.Order{
+		Base:        models.Base{CreatedBy: uuid.MustParse(userID)},
 		UserID:      uuid.MustParse(userID),
-		GrandTotal: total,
-		Status:     status,
+		GrandTotal:  total,
+		Status:      status,
 		OrderNumber: orderNumber,
 	}
 	if err := o.orderRepo.CreateOrder(tx, newOrder); err != nil {
@@ -228,7 +228,7 @@ func (o *orderService) generateOrderNumber(tx *gorm.DB) (string, error) {
 func (o *orderService) saveOrderItems(
 	tx *gorm.DB,
 	orderID uuid.UUID,
-	items []model.OrderItem,
+	items []models.OrderItem,
 ) error {
 	// Mapping OrderID before bulk insert OrderItems
 	for i := range items {
@@ -240,9 +240,9 @@ func (o *orderService) saveOrderItems(
 func (o *orderService) UpdateOrder(orderID string, req dtos.OrderRequest, user dtos.CurrentUser) (dtos.OrderResponse, error) {
 	// Set Status
 	if req.IsCheckout {
-		req.Status = constant.Pending
+		req.Status = constants.Pending
 	} else {
-		req.Status = constant.Draft
+		req.Status = constants.Draft
 	}
 
 	// Begin Transaction
@@ -262,18 +262,18 @@ func (o *orderService) UpdateOrder(orderID string, req dtos.OrderRequest, user d
 	}
 
 	// Validate only admin or order creator can update order
-	if user.Role != constant.Admin && order.UserID.String() != user.ID {
+	if user.Role != constants.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dtos.OrderResponse{},
 			utils.ForbiddenException("You are not authorized to update this order")
 	}
 
 	// Validate only draft or pending order can be updated
-	validStatus := []constant.OrderStatus{constant.Draft}
+	validStatus := []constants.OrderStatus{constants.Draft}
 	if !slices.Contains(validStatus, order.Status) {
 		tx.Rollback()
 		return dtos.OrderResponse{},
-			utils.BadRequestException("Only "+string(constant.Draft)+" order can be updated", nil)
+			utils.BadRequestException("Only "+string(constants.Draft)+" order can be updated", nil)
 	}
 
 	// Update Order
@@ -325,13 +325,13 @@ func (o *orderService) UpdateOrder(orderID string, req dtos.OrderRequest, user d
 
 func (s *orderService) GetOrders(req dtos.QueryOrderParam, user dtos.CurrentUser) ([]dtos.OrderResponse, int64, error) {
 	var userID, storeID string
-	var statuses []constant.OrderStatus
+	var statuses []constants.OrderStatus
 
 	switch user.Role {
-		case constant.Buyer:
-			userID = user.ID
-		case constant.Seller:
-			userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
+	case constants.Buyer:
+		userID = user.ID
+	case constants.Seller:
+		userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil || userStore == nil {
 			return []dtos.OrderResponse{}, 0, nil
 		}
@@ -339,7 +339,7 @@ func (s *orderService) GetOrders(req dtos.QueryOrderParam, user dtos.CurrentUser
 	}
 
 	if req.Status != nil {
-		statuses = []constant.OrderStatus{*req.Status}
+		statuses = []constants.OrderStatus{*req.Status}
 	}
 
 	return s.orderQueryRepo.FindAllPagination(userID, storeID, statuses, req)
@@ -363,24 +363,24 @@ func (s *orderService) CancelOrder(orderID string, user dtos.CurrentUser) (dtos.
 	}
 
 	// Validate only admin or order creator can cancel order
-	if user.Role != constant.Admin && order.UserID.String() != user.ID {
+	if user.Role != constants.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dtos.OrderResponse{},
 			utils.ForbiddenException("You are not authorized to cancel this order")
 	}
 
 	// Validate only draft or pending order can be cancelled
-	validStatus := []constant.OrderStatus{constant.Draft, constant.Pending}
+	validStatus := []constants.OrderStatus{constants.Draft, constants.Pending}
 	if !slices.Contains(validStatus, order.Status) {
 		tx.Rollback()
 		return dtos.OrderResponse{},
 			utils.BadRequestException(
-				"Only "+string(constant.Draft)+" and "+string(constant.Pending)+" orders can be cancelled. Current status: "+string(order.Status),
+				"Only "+string(constants.Draft)+" and "+string(constants.Pending)+" orders can be cancelled. Current status: "+string(order.Status),
 				nil)
 	}
 
 	// Update Order Status
-	order.Status = constant.Cancelled
+	order.Status = constants.Cancelled
 	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
@@ -388,7 +388,7 @@ func (s *orderService) CancelOrder(orderID string, user dtos.CurrentUser) (dtos.
 	}
 
 	// Rollback Stock for each OrderItem
-	if order.Status != constant.Draft {
+	if order.Status != constants.Draft {
 		for _, item := range order.OrderItems {
 			if err := s.productRepo.AddStock(tx, item.ProductID.String(), item.Quantity); err != nil {
 				tx.Rollback()
@@ -418,7 +418,7 @@ func (s *orderService) CancelOrder(orderID string, user dtos.CurrentUser) (dtos.
 
 	// Send Notification
 	s.notifService.QueueSendEmail(
-		user.Email, 
+		user.Email,
 		"Order has been cancelled",
 		"Order with ID "+orderID+" has been cancelled",
 	)
@@ -451,23 +451,23 @@ func (s *orderService) ConfirmOrder(orderID string, user dtos.CurrentUser) (dtos
 	}
 
 	// Validate only admin or order creator can confirm order
-	if user.Role != constant.Admin && order.UserID.String() != user.ID {
+	if user.Role != constants.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
 		return dtos.OrderResponse{},
 			utils.ForbiddenException("You are not authorized to cancel this order")
 	}
 
 	// Validate only pending order can be confirmed
-	if order.Status != constant.Pending {
+	if order.Status != constants.Pending {
 		tx.Rollback()
 		return dtos.OrderResponse{},
 			utils.BadRequestException(
-				"Only "+string(constant.Pending)+" orders can be confirmed. Current status: "+string(order.Status),
+				"Only "+string(constants.Pending)+" orders can be confirmed. Current status: "+string(order.Status),
 				nil)
 	}
 
 	// Update Order Status
-	order.Status = constant.Paid
+	order.Status = constants.Paid
 	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
@@ -495,7 +495,7 @@ func (s *orderService) ConfirmOrder(orderID string, user dtos.CurrentUser) (dtos
 
 	// Send Notification
 	s.notifService.QueueSendEmail(
-		user.Email, 
+		user.Email,
 		"Order has been confirmed",
 		"Order with ID "+orderID+" has been confirmed",
 	)

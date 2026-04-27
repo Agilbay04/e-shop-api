@@ -7,10 +7,10 @@ import (
 )
 
 type OrderRepository interface {
-	CreateOrder(tx *gorm.DB, order *model.Order) error
-	CreateOrderItems(tx *gorm.DB, items []model.OrderItem) error
+	CreateOrder(tx *gorm.DB, order *models.Order) error
+	CreateOrderItems(tx *gorm.DB, items []models.OrderItem) error
 	DeleteOrderItems(tx *gorm.DB, orderID string) error
-	UpdateOrder(tx *gorm.DB, order *model.Order) error
+	UpdateOrder(tx *gorm.DB, order *models.Order) error
 }
 
 type orderRepository struct {
@@ -18,10 +18,10 @@ type orderRepository struct {
 }
 
 func NewOrderRepository(db *gorm.DB) OrderRepository {
-	return &orderRepository {db}
+	return &orderRepository{db}
 }
 
-func (r *orderRepository) CreateOrder(tx *gorm.DB, order *model.Order) error {
+func (r *orderRepository) CreateOrder(tx *gorm.DB, order *models.Order) error {
 	if tx != nil {
 		return tx.Create(order).Error
 	}
@@ -29,22 +29,22 @@ func (r *orderRepository) CreateOrder(tx *gorm.DB, order *model.Order) error {
 	return r.db.Create(order).Error
 }
 
-func (r *orderRepository) CreateOrderItems(tx *gorm.DB, items []model.OrderItem) error {
+func (r *orderRepository) CreateOrderItems(tx *gorm.DB, items []models.OrderItem) error {
 	if tx != nil {
 		return tx.Create(&items).Error
 	}
-	
+
 	return r.db.Create(&items).Error
 }
 
 func (r *orderRepository) DeleteOrderItems(tx *gorm.DB, orderID string) error {
 	if tx != nil {
-		return tx.Where("order_id = ?", orderID).Delete(&model.OrderItem{}).Error
+		return tx.Where("order_id = ?", orderID).Delete(&models.OrderItem{}).Error
 	}
-	return r.db.Where("order_id = ?", orderID).Delete(&model.OrderItem{}).Error
+	return r.db.Where("order_id = ?", orderID).Delete(&models.OrderItem{}).Error
 }
 
-func (r *orderRepository) UpdateOrder(tx *gorm.DB, order *model.Order) error {
+func (r *orderRepository) UpdateOrder(tx *gorm.DB, order *models.Order) error {
 	if tx != nil {
 		return tx.Save(order).Error
 	}

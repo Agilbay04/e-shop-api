@@ -1,4 +1,4 @@
-package constant
+package constants
 
 const (
 	// Connection String
@@ -9,4 +9,7 @@ const (
 	DBMaxOpenConns = "100"
 	DBConnMaxLifetime = "60m"
 	DBConnMaxIdleTime = "15m"
+
+	// Query Tracker
+	SlowQueryThreshold = "200ms"
 )

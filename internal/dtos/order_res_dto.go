@@ -3,13 +3,13 @@ package dtos
 import "e-shop-api/internal/constants"
 
 type OrderResponse struct {
-	ID          	string				`json:"id"`
-	OrderNumber 	string 				`json:"order_number"`
-	UserID      	string 				`json:"user_id"`
-	Username    	string				`json:"username"`
-	GrandTotal  	int       			`json:"grand_total"`
-	Status      	constant.OrderStatus 	`json:"status"`
-	OrderItems 	[]OrderItemResponse 	`json:"order_items"`
+	ID          string				  `json:"id"`
+	OrderNumber string 				  `json:"order_number"`
+	UserID      string 				  `json:"user_id"`
+	Username    string				  `json:"username"`
+	GrandTotal  int       			  `json:"grand_total"`
+	Status      constants.OrderStatus `json:"status"`
+	OrderItems 	[]OrderItemResponse   `json:"order_items"`
 }
 
 type OrderItemResponse struct {

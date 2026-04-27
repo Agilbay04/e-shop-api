@@ -12,10 +12,10 @@ import (
 
 type ProductQueryRepository interface {
 	FindAllPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error)
-	FindBySlug(slug string) (*model.Product, error)
-	FindByID(id string) (*model.Product, error)
-	FindByIDPreloadStore(id string) (*model.Product, error)
-	FindByIDWithLock(tx *gorm.DB, id string) (*model.Product, error)
+	FindBySlug(slug string) (*models.Product, error)
+	FindByID(id string) (*models.Product, error)
+	FindByIDPreloadStore(id string) (*models.Product, error)
+	FindByIDWithLock(tx *gorm.DB, id string) (*models.Product, error)
 }
 
 type productQueryRepository struct {
@@ -27,18 +27,18 @@ func NewProductQueryRepository(db *gorm.DB) ProductQueryRepository {
 }
 
 func (r *productQueryRepository) FindAllPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error) {
-	var products []model.Product
+	var products []models.Product
 	var total int64
 
 	// Apply filters for COUNT query
-	countQuery := r.db.Model(&model.Product{})
+	countQuery := r.db.Model(&models.Product{})
 	r.applyFilters(countQuery, req)
 	if err := countQuery.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
 	// Apply filters for SELECT query (fresh query)
-	query := r.db.Model(&model.Product{})
+	query := r.db.Model(&models.Product{})
 	r.applyFilters(query, req)
 
 	// Pagination & Sorting
@@ -51,7 +51,7 @@ func (r *productQueryRepository) FindAllPagination(req dtos.QueryProductRequest,
 		return nil, 0, err
 	}
 
-	// Map model.Product to dtos.ProductResponse
+	// Map models.Product to dtos.ProductResponse
 	productsResponse := make([]dtos.ProductResponse, len(products))
 	for i, product := range products {
 		productsResponse[i] = dtos.ProductResponse{
@@ -63,12 +63,12 @@ func (r *productQueryRepository) FindAllPagination(req dtos.QueryProductRequest,
 			Unit:        product.Unit,
 			IsActive:    product.IsActive,
 			CreatedAt:   product.CreatedAt.Format(time.RFC3339),
-			CreatedBy:  product.CreatedBy.String(),
-			UpdatedAt: product.UpdatedAt.Format(time.RFC3339),
-			UpdatedBy:  product.UpdatedBy.String(),
-			DeletedAt:  product.DeletedAt.Time.Format(time.RFC3339),
-			StoreID:    product.StoreID.String(),
-			StoreName: product.Store.Name,
+			CreatedBy:   product.CreatedBy.String(),
+			UpdatedAt:   product.UpdatedAt.Format(time.RFC3339),
+			UpdatedBy:   product.UpdatedBy.String(),
+			DeletedAt:   product.DeletedAt.Time.Format(time.RFC3339),
+			StoreID:     product.StoreID.String(),
+			StoreName:   product.Store.Name,
 		}
 	}
 
@@ -97,35 +97,35 @@ func (r *productQueryRepository) applyFilters(query *gorm.DB, req dtos.QueryProd
 	return query
 }
 
-func (r *productQueryRepository) FindBySlug(slug string) (*model.Product, error) {
-	var product model.Product
+func (r *productQueryRepository) FindBySlug(slug string) (*models.Product, error) {
+	var product models.Product
 	err := r.db.Where("slug = ?", slug).First(&product).Error
 	return &product, err
 }
 
-func (r *productQueryRepository) FindByID(id string) (*model.Product, error) {
-	var product model.Product
+func (r *productQueryRepository) FindByID(id string) (*models.Product, error) {
+	var product models.Product
 	err := r.db.Where("id = ?", id).First(&product).Error
 	return &product, err
 }
 
-func (r *productQueryRepository) FindByIDPreloadStore(id string) (*model.Product, error) {
-	var product model.Product
+func (r *productQueryRepository) FindByIDPreloadStore(id string) (*models.Product, error) {
+	var product models.Product
 	err := r.db.Preload("Store").Where("id = ?", id).First(&product).Error
 	return &product, err
 }
 
-func (r *productQueryRepository) FindByIDWithLock(tx *gorm.DB, id string) (*model.Product, error) {
-    var product model.Product
+func (r *productQueryRepository) FindByIDWithLock(tx *gorm.DB, id string) (*models.Product, error) {
+	var product models.Product
 
-    err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Preload("Store").
 		First(&product, "id = ?", id).
 		Error
-    
+
 	if err != nil {
 		return nil, err
 	}
 
-    return &product, nil
+	return &product, nil
 }

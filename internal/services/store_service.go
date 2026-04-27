@@ -29,11 +29,11 @@ type storeService struct {
 }
 
 func NewStoreService(
-	db 				*gorm.DB,
-	storeRepo 		repositories.StoreRepository,
-	storeQueryRepo 	repositories.StoreQueryRepository,
-	orderQueryRepo 	repositories.OrderQueryRepository,
-	userQueryRepo 	repositories.UserQueryRepository,
+	db *gorm.DB,
+	storeRepo repositories.StoreRepository,
+	storeQueryRepo repositories.StoreQueryRepository,
+	orderQueryRepo repositories.OrderQueryRepository,
+	userQueryRepo repositories.UserQueryRepository,
 ) StoreService {
 	return &storeService{
 		db,
@@ -57,7 +57,7 @@ func (s *storeService) CreateStore(
 		}
 	}()
 
-	if user.Role != constant.Seller {
+	if user.Role != constants.Seller {
 		tx.Rollback()
 		return dtos.CreateStoreResponse{}, utils.UnauthorizedException("User is not a seller")
 	}
@@ -66,14 +66,14 @@ func (s *storeService) CreateStore(
 
 	if err == nil && existingStore != nil {
 		tx.Rollback()
-		return dtos.CreateStoreResponse{}, utils.BadRequestException("User " + user.Username + " already has a store", err)
+		return dtos.CreateStoreResponse{}, utils.BadRequestException("User "+user.Username+" already has a store", err)
 	}
 
-	store := &model.Store{
+	store := &models.Store{
 		Name:        req.Name,
 		Description: req.Description,
 		UserID:      uuid.MustParse(req.UserID),
-		Base: model.Base{
+		Base: models.Base{
 			CreatedBy: uuid.MustParse(user.ID),
 			UpdatedBy: uuid.MustParse(user.ID),
 		},
@@ -101,7 +101,7 @@ func (s *storeService) GetStores(
 	req dtos.QueryStoreParam,
 	user dtos.CurrentUser,
 ) ([]dtos.StoreResponse, int64, error) {
-	if user.Role == constant.Seller {
+	if user.Role == constants.Seller {
 		userStore, _ := s.storeQueryRepo.FindByUserID(user.ID)
 
 		if userStore == nil {
@@ -210,7 +210,7 @@ func (s *storeService) ActivateStore(
 	}
 
 	if !req.IsActive {
-		count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, req.ID, []constant.OrderStatus{constant.Pending})
+		count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, req.ID, []constants.OrderStatus{constants.Pending})
 		if err != nil {
 			tx.Rollback()
 			return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to check order items")
@@ -275,7 +275,7 @@ func (s *storeService) DeleteStore(
 		return dtos.StoreResponse{}, utils.ForbiddenException("You don't have permission to delete this store")
 	}
 
-	count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, id, []constant.OrderStatus{constant.Draft, constant.Pending})
+	count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, id, []constants.OrderStatus{constants.Draft, constants.Pending})
 	if err != nil {
 		tx.Rollback()
 		return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to check order items")

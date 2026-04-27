@@ -1,6 +1,7 @@
 package querytracker
 
 import (
+	"e-shop-api/internal/constants"
 	"e-shop-api/internal/pkg/logger"
 	"e-shop-api/internal/pkg/utils"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	slowQueryThreshold = utils.GetEnvTime("SLOW_QUERY_THRESHOLD", "200ms")
+	slowQueryThreshold = utils.GetEnvTime("SLOW_QUERY_THRESHOLD", constants.SlowQueryThreshold)
 )
 
 type slowQueryPlugin struct{}

@@ -20,7 +20,7 @@ func ConnectDatabase() *gorm.DB {
 	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	dsn := fmt.Sprintf(constant.PostgresDSN,
+	dsn := fmt.Sprintf(constants.PostgresDSN,
 		host, user, password, dbName, port)
 
 	var db *gorm.DB
@@ -68,10 +68,10 @@ func setupDatabasePooling(db *gorm.DB) {
 		panic("Failed to setup database pooling!")
 	}
 
-	maxIdle := utils.GetEnvInt("DB_MAX_IDLE_CONNS", constant.DBMaxIdleConns)
-	maxOpen := utils.GetEnvInt("DB_MAX_OPEN_CONNS", constant.DBMaxOpenConns)
-	maxLifetimeMinutes := utils.GetEnvTime("DB_CONN_MAX_LIFETIME", constant.DBConnMaxLifetime)
-	maxIdleMinutes := utils.GetEnvTime("DB_CONN_MAX_IDLETIME", constant.DBConnMaxIdleTime)
+	maxIdle := utils.GetEnvInt("DB_MAX_IDLE_CONNS", constants.DBMaxIdleConns)
+	maxOpen := utils.GetEnvInt("DB_MAX_OPEN_CONNS", constants.DBMaxOpenConns)
+	maxLifetimeMinutes := utils.GetEnvTime("DB_CONN_MAX_LIFETIME", constants.DBConnMaxLifetime)
+	maxIdleMinutes := utils.GetEnvTime("DB_CONN_MAX_IDLETIME", constants.DBConnMaxIdleTime)
 
 	sqlDB.SetMaxIdleConns(maxIdle)
 	sqlDB.SetMaxOpenConns(maxOpen)
