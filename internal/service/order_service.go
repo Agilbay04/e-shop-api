@@ -1,13 +1,11 @@
 package service
 
 import (
-	"crypto/rand"
 	"e-shop-api/internal/constant"
 	"e-shop-api/internal/dto"
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
-	"math/big"
 	"slices"
 	"time"
 
@@ -219,25 +217,12 @@ func (o *orderService) generateOrderNumber(tx *gorm.DB) (string, error) {
 		return "", err
 	}
 
-	randomStr, err := generateRandomString(6)
+	randomStr, err := util.GenerateRandomString(6)
 	if err != nil {
 		return "", err
 	}
 
 	return "ORD-" + dateStr + "-" + randomStr, nil
-}
-
-func generateRandomString(length int) (string, error) {
-	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, length)
-	for i := range b {
-		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
-		if err != nil {
-			return "", err
-		}
-		b[i] = chars[num.Int64()]
-	}
-	return string(b), nil
 }
 
 func (o *orderService) saveOrderItems(

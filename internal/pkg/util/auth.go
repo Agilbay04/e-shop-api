@@ -1,7 +1,10 @@
 package util
 
 import (
+	"crypto/rand"
 	"e-shop-api/internal/dto"
+	"math/big"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,4 +24,17 @@ func GetCurrentUser(ctx *gin.Context) dto.CurrentUser {
 	}
 	
 	return user
+}
+
+func GenerateRandomString(length int) (string, error) {
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		if err != nil {
+			return "", err
+		}
+		b[i] = chars[num.Int64()]
+	}
+	return string(b), nil
 }
