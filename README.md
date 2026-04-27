@@ -27,8 +27,9 @@ e-shop-api/
 │   ├── api/            # API documentation (HTML, YAML, PNG)
 │   └── erd/            # Database documentation (DBML, SQL, ERD PNG)
 ├── internal/
-│   ├── app/            # Application setup (router, DI registries)
-│   ├── config/         # Configuration (database, seeder, redis)
+│   ├── app/            # Application setup (router, DI registries, etc.)
+│   ├── config/         # Configuration (database, seeder, redis, etc.)
+│   ├── constant/       # Constants for common values
 │   ├── dto/            # Data Transfer Objects
 │   ├── handler/        # HTTP handlers
 │   ├── middleware/     # Middleware
