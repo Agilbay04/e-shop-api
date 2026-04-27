@@ -29,7 +29,7 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 }
 
 func (h *UserHandler) UploadPicture(ctx *gin.Context) {
-	var req dto.UploadPictureRequest
+	var req dtos.UploadPictureRequest
 	user := utils.GetCurrentUser(ctx)
 
 	if err := ctx.ShouldBind(&req); err != nil {

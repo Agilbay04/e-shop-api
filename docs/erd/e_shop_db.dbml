@@ -1,3 +1,7 @@
+Table "migrations" {
+  "id" "character varying(255)" [pk, not null]
+}
+
 Table "order_items" {
   "id" uuid [pk, not null, default: `gen_random_uuid()`]
   "created_at" timestamp
@@ -17,6 +21,20 @@ Table "order_items" {
   }
 }
 
+Table "order_sequences" {
+  "id" uuid [pk, not null, default: `gen_random_uuid()`]
+  "date" date [not null]
+  "last_sequence" bigint [not null]
+  "created_at" timestamp
+  "updated_at" timestamp
+  "deleted_at" timestamp
+
+  Indexes {
+    date [type: btree, unique, name: "idx_order_sequences_date"]
+    deleted_at [type: btree, name: "idx_order_sequences_deleted_at"]
+  }
+}
+
 Table "orders" {
   "id" uuid [pk, not null, default: `gen_random_uuid()`]
   "created_at" timestamp
@@ -27,6 +45,7 @@ Table "orders" {
   "user_id" uuid
   "status" "character varying(20)" [default: `'draft'::charactervarying`]
   "grand_total" bigint [not null]
+  "order_number" "character varying(50)" [unique]
 
   Indexes {
     deleted_at [type: btree, name: "idx_orders_deleted_at"]
@@ -84,6 +103,7 @@ Table "users" {
   "password" text [not null]
   "role" "character varying(20)" [default: `'buyer'::charactervarying`]
   "is_active" boolean [default: true]
+  "picture" "character varying(500)"
 
   Indexes {
     deleted_at [type: btree, name: "idx_users_deleted_at"]

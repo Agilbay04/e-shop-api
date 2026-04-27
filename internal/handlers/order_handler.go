@@ -26,7 +26,7 @@ var orderAllowedSortBy = map[string]bool{
 }
 
 func (h *OrderHandler) Index(ctx *gin.Context) {
-	var req dto.QueryOrderParam
+	var req dtos.QueryOrderParam
 	user := utils.GetCurrentUser(ctx)
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -34,7 +34,7 @@ func (h *OrderHandler) Index(ctx *gin.Context) {
 		return
 	}
 
-	if !dto.ValidateSortByPattern(req.SortBy) || !dto.IsAllowedSortBy(req.SortBy, orderAllowedSortBy) {
+	if !dtos.ValidateSortByPattern(req.SortBy) || !dtos.IsAllowedSortBy(req.SortBy, orderAllowedSortBy) {
 		ctx.Error(utils.BadRequestException("Invalid sort_by value. Allowed: created_at, updated_at, grand_total, status", nil))
 		return
 	}
@@ -49,7 +49,7 @@ func (h *OrderHandler) Index(ctx *gin.Context) {
 }
 
 func (h *OrderHandler) CreateOrder(ctx *gin.Context) {
-	req := dto.OrderRequest{
+	req := dtos.OrderRequest{
 		IsCheckout: true,
 	}
 
@@ -75,7 +75,7 @@ func (h *OrderHandler) UpdateOrder(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.OrderRequest
+	var req dtos.OrderRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return

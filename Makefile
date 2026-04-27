@@ -1,9 +1,8 @@
-# Configuration
-BINARY_NAME=e-shop-api
-MAIN_PATH=cmd/api/main.go
-MIGRATE_PATH=cmd/migrate/main.go
-ADD_MIGRATE_PATH=cmd/gen/main.go
-SEED_PATH=cmd/seed/main.go
+# Load config from .env
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
 
 .PHONY: all build run dev lint migrate seed add-migrate tidy build clean help
 
@@ -54,3 +53,9 @@ clean:
 	rm -rf bin/
 	rm -rf uploads/temp/*
 	rm -rf tmp/
+	rm -rf *.log
+
+## dbml: Generate database diagram
+dbml:
+	PGPASSWORD=$(DB_PASSWORD) pg_dump -s -U $(DB_USER) -h localhost -p $(DB_PORT) $(DB_NAME) > $(DOCS_ERD_PATH)/$(DB_NAME).sql
+	sql2dbml $(DOCS_ERD_PATH)/${DB_NAME}.sql --postgres -o $(DOCS_ERD_PATH)/${DB_NAME}.dbml

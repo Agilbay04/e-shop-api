@@ -27,7 +27,7 @@ var productAllowedSortBy = map[string]bool{
 }
 
 func (ph *ProductHandler) Index(ctx *gin.Context) {
-	var req dto.QueryProductRequest
+	var req dtos.QueryProductRequest
 	user := utils.GetCurrentUser(ctx)
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -35,7 +35,7 @@ func (ph *ProductHandler) Index(ctx *gin.Context) {
 		return
 	}
 
-	if !dto.ValidateSortByPattern(req.SortBy) || !dto.IsAllowedSortBy(req.SortBy, productAllowedSortBy) {
+	if !dtos.ValidateSortByPattern(req.SortBy) || !dtos.IsAllowedSortBy(req.SortBy, productAllowedSortBy) {
 		ctx.Error(utils.BadRequestException("Invalid sort_by value. Allowed: created_at, updated_at, price, name, stock", nil))
 		return
 	}
@@ -50,7 +50,7 @@ func (ph *ProductHandler) Index(ctx *gin.Context) {
 }
 
 func (ph *ProductHandler) CreateProduct(ctx *gin.Context) {
-	var req dto.CreateProductRequest
+	var req dtos.CreateProductRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -73,7 +73,7 @@ func (ph *ProductHandler) UpdateProduct(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.UpdateProductRequest
+	var req dtos.UpdateProductRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -107,7 +107,7 @@ func (ph *ProductHandler) DeleteProduct(ctx *gin.Context) {
 }
 
 func (ph *ProductHandler) ActivateProduct(ctx *gin.Context) {
-	var req dto.ActivateProductRequest
+	var req dtos.ActivateProductRequest
 
 	if req.IsActive == nil {
 		req.IsActive = new(bool)

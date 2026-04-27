@@ -23,7 +23,7 @@ var storeAllowedSortBy = map[string]bool{
 }
 
 func (h *StoreHandler) Index(ctx *gin.Context) {
-	var req dto.QueryStoreParam
+	var req dtos.QueryStoreParam
 	user := utils.GetCurrentUser(ctx)
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -31,7 +31,7 @@ func (h *StoreHandler) Index(ctx *gin.Context) {
 		return
 	}
 
-	if !dto.ValidateSortByPattern(req.SortBy) || !dto.IsAllowedSortBy(req.SortBy, storeAllowedSortBy) {
+	if !dtos.ValidateSortByPattern(req.SortBy) || !dtos.IsAllowedSortBy(req.SortBy, storeAllowedSortBy) {
 		ctx.Error(utils.BadRequestException("Invalid sort_by value. Allowed: created_at, updated_at, name", nil))
 		return
 	}
@@ -47,7 +47,7 @@ func (h *StoreHandler) Index(ctx *gin.Context) {
 
 func (h *StoreHandler) CreateStore(ctx *gin.Context) {
 	user := utils.GetCurrentUser(ctx)
-	var req dto.CreateStoreRequest
+	var req dtos.CreateStoreRequest
 	req.UserID = user.ID
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -71,7 +71,7 @@ func (h *StoreHandler) UpdateStore(ctx *gin.Context) {
 		return
 	}
 
-	var req dto.UpdateStoreRequest
+	var req dtos.UpdateStoreRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -88,7 +88,7 @@ func (h *StoreHandler) UpdateStore(ctx *gin.Context) {
 }
 
 func (h *StoreHandler) ActivateStore(ctx *gin.Context) {
-	var req dto.ActivateStoreRequest
+	var req dtos.ActivateStoreRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return

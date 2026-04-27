@@ -11,16 +11,16 @@ import (
 const UserContextKey = "currentUser"
 
 // GetCurrentUser to extract CurrentUser from gin.Context
-func GetCurrentUser(ctx *gin.Context) dto.CurrentUser {
+func GetCurrentUser(ctx *gin.Context) dtos.CurrentUser {
 	val, exists := ctx.Get(UserContextKey)
 	if !exists {
-		return dto.CurrentUser{}
+		return dtos.CurrentUser{}
 	}
 
 	// type assertion
-	user, ok := val.(dto.CurrentUser)
+	user, ok := val.(dtos.CurrentUser)
 	if !ok {
-		return dto.CurrentUser{}
+		return dtos.CurrentUser{}
 	}
 	
 	return user

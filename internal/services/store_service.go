@@ -13,11 +13,11 @@ import (
 )
 
 type StoreService interface {
-	CreateStore(req dto.CreateStoreRequest, user dto.CurrentUser) (dto.CreateStoreResponse, error)
-	GetStores(req dto.QueryStoreParam, user dto.CurrentUser) ([]dto.StoreResponse, int64, error)
-	UpdateStore(id string, req dto.UpdateStoreRequest, user dto.CurrentUser) (dto.StoreResponse, error)
-	ActivateStore(req dto.ActivateStoreRequest, user dto.CurrentUser) (dto.StoreResponse, error)
-	DeleteStore(id string, user dto.CurrentUser) (dto.StoreResponse, error)
+	CreateStore(req dtos.CreateStoreRequest, user dtos.CurrentUser) (dtos.CreateStoreResponse, error)
+	GetStores(req dtos.QueryStoreParam, user dtos.CurrentUser) ([]dtos.StoreResponse, int64, error)
+	UpdateStore(id string, req dtos.UpdateStoreRequest, user dtos.CurrentUser) (dtos.StoreResponse, error)
+	ActivateStore(req dtos.ActivateStoreRequest, user dtos.CurrentUser) (dtos.StoreResponse, error)
+	DeleteStore(id string, user dtos.CurrentUser) (dtos.StoreResponse, error)
 }
 
 type storeService struct {
@@ -45,9 +45,9 @@ func NewStoreService(
 }
 
 func (s *storeService) CreateStore(
-	req dto.CreateStoreRequest,
-	user dto.CurrentUser,
-) (dto.CreateStoreResponse, error) {
+	req dtos.CreateStoreRequest,
+	user dtos.CurrentUser,
+) (dtos.CreateStoreResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -59,14 +59,14 @@ func (s *storeService) CreateStore(
 
 	if user.Role != constant.Seller {
 		tx.Rollback()
-		return dto.CreateStoreResponse{}, utils.UnauthorizedException("User is not a seller")
+		return dtos.CreateStoreResponse{}, utils.UnauthorizedException("User is not a seller")
 	}
 
 	existingStore, err := s.storeQueryRepo.FindByUserID(req.UserID)
 
 	if err == nil && existingStore != nil {
 		tx.Rollback()
-		return dto.CreateStoreResponse{}, utils.BadRequestException("User " + user.Username + " already has a store", err)
+		return dtos.CreateStoreResponse{}, utils.BadRequestException("User " + user.Username + " already has a store", err)
 	}
 
 	store := &model.Store{
@@ -81,14 +81,14 @@ func (s *storeService) CreateStore(
 
 	if err := s.storeRepo.Create(tx, store); err != nil {
 		tx.Rollback()
-		return dto.CreateStoreResponse{}, err
+		return dtos.CreateStoreResponse{}, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.CreateStoreResponse{}, err
+		return dtos.CreateStoreResponse{}, err
 	}
 
-	return dto.CreateStoreResponse{
+	return dtos.CreateStoreResponse{
 		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
@@ -98,14 +98,14 @@ func (s *storeService) CreateStore(
 }
 
 func (s *storeService) GetStores(
-	req dto.QueryStoreParam,
-	user dto.CurrentUser,
-) ([]dto.StoreResponse, int64, error) {
+	req dtos.QueryStoreParam,
+	user dtos.CurrentUser,
+) ([]dtos.StoreResponse, int64, error) {
 	if user.Role == constant.Seller {
 		userStore, _ := s.storeQueryRepo.FindByUserID(user.ID)
 
 		if userStore == nil {
-			return []dto.StoreResponse{}, 0, nil
+			return []dtos.StoreResponse{}, 0, nil
 		}
 
 		userID := user.ID
@@ -117,9 +117,9 @@ func (s *storeService) GetStores(
 
 func (s *storeService) UpdateStore(
 	id string,
-	req dto.UpdateStoreRequest,
-	user dto.CurrentUser,
-) (dto.StoreResponse, error) {
+	req dtos.UpdateStoreRequest,
+	user dtos.CurrentUser,
+) (dtos.StoreResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -132,12 +132,12 @@ func (s *storeService) UpdateStore(
 	store, err := s.storeQueryRepo.FindByIDWithLock(tx, id)
 	if err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.NotFoundException("Store not found")
+		return dtos.StoreResponse{}, utils.NotFoundException("Store not found")
 	}
 
 	if store.UserID.String() != user.ID {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.ForbiddenException("You don't have permission to update this store")
+		return dtos.StoreResponse{}, utils.ForbiddenException("You don't have permission to update this store")
 	}
 
 	if req.Name != nil {
@@ -151,11 +151,11 @@ func (s *storeService) UpdateStore(
 
 	if err := s.storeRepo.Update(tx, store); err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.InternalServerErrorException("Failed to update store")
+		return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to update store")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.StoreResponse{}, err
+		return dtos.StoreResponse{}, err
 	}
 
 	deletedAt := ""
@@ -163,7 +163,7 @@ func (s *storeService) UpdateStore(
 		deletedAt = store.DeletedAt.Time.Format(time.RFC3339)
 	}
 
-	return dto.StoreResponse{
+	return dtos.StoreResponse{
 		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
@@ -177,9 +177,9 @@ func (s *storeService) UpdateStore(
 }
 
 func (s *storeService) ActivateStore(
-	req dto.ActivateStoreRequest,
-	user dto.CurrentUser,
-) (dto.StoreResponse, error) {
+	req dtos.ActivateStoreRequest,
+	user dtos.CurrentUser,
+) (dtos.StoreResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -192,12 +192,12 @@ func (s *storeService) ActivateStore(
 	store, err := s.storeQueryRepo.FindByIDWithLock(tx, req.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.NotFoundException("Store not found")
+		return dtos.StoreResponse{}, utils.NotFoundException("Store not found")
 	}
 
 	if store.UserID.String() != user.ID {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.ForbiddenException("You don't have permission to activate/deactivate this store")
+		return dtos.StoreResponse{}, utils.ForbiddenException("You don't have permission to activate/deactivate this store")
 	}
 
 	if store.IsActive == req.IsActive {
@@ -206,18 +206,18 @@ func (s *storeService) ActivateStore(
 		if !req.IsActive {
 			status = "inactive"
 		}
-		return dto.StoreResponse{}, utils.BadRequestException("Store is already "+status, nil)
+		return dtos.StoreResponse{}, utils.BadRequestException("Store is already "+status, nil)
 	}
 
 	if !req.IsActive {
 		count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, req.ID, []constant.OrderStatus{constant.Pending})
 		if err != nil {
 			tx.Rollback()
-			return dto.StoreResponse{}, utils.InternalServerErrorException("Failed to check order items")
+			return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to check order items")
 		}
 		if count > 0 {
 			tx.Rollback()
-			return dto.StoreResponse{}, utils.BadRequestException("Cannot deactivate store with pending order items", nil)
+			return dtos.StoreResponse{}, utils.BadRequestException("Cannot deactivate store with pending order items", nil)
 		}
 	}
 
@@ -226,11 +226,11 @@ func (s *storeService) ActivateStore(
 
 	if err := s.storeRepo.Update(tx, store); err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.InternalServerErrorException("Failed to activate/deactivate store")
+		return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to activate/deactivate store")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.StoreResponse{}, err
+		return dtos.StoreResponse{}, err
 	}
 
 	deletedAt := ""
@@ -238,7 +238,7 @@ func (s *storeService) ActivateStore(
 		deletedAt = store.DeletedAt.Time.Format(time.RFC3339)
 	}
 
-	return dto.StoreResponse{
+	return dtos.StoreResponse{
 		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
@@ -253,8 +253,8 @@ func (s *storeService) ActivateStore(
 
 func (s *storeService) DeleteStore(
 	id string,
-	user dto.CurrentUser,
-) (dto.StoreResponse, error) {
+	user dtos.CurrentUser,
+) (dtos.StoreResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -267,22 +267,22 @@ func (s *storeService) DeleteStore(
 	store, err := s.storeQueryRepo.FindByIDWithLock(tx, id)
 	if err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.NotFoundException("Store not found")
+		return dtos.StoreResponse{}, utils.NotFoundException("Store not found")
 	}
 
 	if store.UserID.String() != user.ID {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.ForbiddenException("You don't have permission to delete this store")
+		return dtos.StoreResponse{}, utils.ForbiddenException("You don't have permission to delete this store")
 	}
 
 	count, err := s.orderQueryRepo.CountOrderItemsByStoreAndOrderStatus(tx, id, []constant.OrderStatus{constant.Draft, constant.Pending})
 	if err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.InternalServerErrorException("Failed to check order items")
+		return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to check order items")
 	}
 	if count > 0 {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.BadRequestException("Cannot delete store with draft or pending order items", nil)
+		return dtos.StoreResponse{}, utils.BadRequestException("Cannot delete store with draft or pending order items", nil)
 	}
 
 	store.UpdatedBy = uuid.MustParse(user.ID)
@@ -293,16 +293,16 @@ func (s *storeService) DeleteStore(
 
 	if err := s.storeRepo.Delete(tx, store.ID.String()); err != nil {
 		tx.Rollback()
-		return dto.StoreResponse{}, utils.InternalServerErrorException("Failed to delete store")
+		return dtos.StoreResponse{}, utils.InternalServerErrorException("Failed to delete store")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.StoreResponse{}, err
+		return dtos.StoreResponse{}, err
 	}
 
 	deletedAt := store.DeletedAt.Time.Format(time.RFC3339)
 
-	return dto.StoreResponse{
+	return dtos.StoreResponse{
 		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,

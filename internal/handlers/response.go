@@ -51,9 +51,9 @@ func RespondError(c *gin.Context, code int, message string, errs interface{}, st
 func RespondPagination(c *gin.Context, data interface{}, totalData int64, page, limit int, message string) {
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 
-	res := dto.PaginationResponse{
+	res := dtos.PaginationResponse{
 		Items: data,
-		Meta: dto.MetaData{
+		Meta: dtos.MetaData{
 			CurrentPage: page,
 			TotalPage:   totalPage,
 			TotalData:   totalData,
@@ -64,7 +64,7 @@ func RespondPagination(c *gin.Context, data interface{}, totalData int64, page, 
 	RespondSuccess(c, 200, message, res)
 }
 
-func OkPagination(c *gin.Context, data interface{}, total int64, filter dto.PaginationParam, message string) {
+func OkPagination(c *gin.Context, data interface{}, total int64, filter dtos.PaginationParam, message string) {
 	c.Set("payload", data)
 	c.Set("total_data", total)
 	c.Set("pagination_filter", filter)

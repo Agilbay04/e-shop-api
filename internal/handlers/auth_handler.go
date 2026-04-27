@@ -17,7 +17,7 @@ func NewAuthHandler(as services.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(ctx *gin.Context) {
-	var req dto.RegisterRequest
+	var req dtos.RegisterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -33,7 +33,7 @@ func (h *AuthHandler) Register(ctx *gin.Context) {
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {
-	var req dto.LoginRequest
+	var req dtos.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -49,7 +49,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 }
 
 func (h *AuthHandler) RefreshToken(ctx *gin.Context) {
-	var req dto.RefreshTokenRequest
+	var req dtos.RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -65,7 +65,7 @@ func (h *AuthHandler) RefreshToken(ctx *gin.Context) {
 }
 
 func (h *AuthHandler) ForgotPassword(ctx *gin.Context) {
-	var req dto.ForgotPasswordRequest
+	var req dtos.ForgotPasswordRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))
 		return
@@ -81,7 +81,7 @@ func (h *AuthHandler) ForgotPassword(ctx *gin.Context) {
 }
 
 func (h *AuthHandler) ResetPassword(ctx *gin.Context) {
-	var req dto.ResetPasswordRequest
+	var req dtos.ResetPasswordRequest
 
 	if err := ctx.ShouldBind(&req); err != nil {
 		ctx.Error(utils.BadRequestException("Invalid request body", err))

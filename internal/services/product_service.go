@@ -13,12 +13,12 @@ import (
 )
 
 type ProductService interface {
-	CreateProduct(product dto.CreateProductRequest, user dto.CurrentUser) (dto.ProductResponse, error)
-	GetPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error)
+	CreateProduct(product dtos.CreateProductRequest, user dtos.CurrentUser) (dtos.ProductResponse, error)
+	GetPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error)
 	GetProductBySlug(slug string) (*model.Product, error)
-	UpdateProduct(id string, req dto.UpdateProductRequest, user dto.CurrentUser) (dto.ProductResponse, error)
-	DeleteProduct(id string, user dto.CurrentUser) (dto.ProductResponse, error)
-	ActivateProduct(req dto.ActivateProductRequest, user dto.CurrentUser) (dto.ProductResponse, error)
+	UpdateProduct(id string, req dtos.UpdateProductRequest, user dtos.CurrentUser) (dtos.ProductResponse, error)
+	DeleteProduct(id string, user dtos.CurrentUser) (dtos.ProductResponse, error)
+	ActivateProduct(req dtos.ActivateProductRequest, user dtos.CurrentUser) (dtos.ProductResponse, error)
 }
 
 type productService struct {
@@ -43,9 +43,9 @@ func NewProductService(
 }
 
 func (s *productService) CreateProduct(
-	req dto.CreateProductRequest,
-	user dto.CurrentUser,
-) (dto.ProductResponse, error) {
+	req dtos.CreateProductRequest,
+	user dtos.CurrentUser,
+) (dtos.ProductResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -58,7 +58,7 @@ func (s *productService) CreateProduct(
 	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.ForbiddenException("User " + user.Username + " doesn't have a store, can't create product")
 	}
 
@@ -77,14 +77,14 @@ func (s *productService) CreateProduct(
 
 	if err := s.productRepo.Create(tx, &product); err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{}, utils.InternalServerErrorException("Failed to save product")
+		return dtos.ProductResponse{}, utils.InternalServerErrorException("Failed to save product")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.ProductResponse{}, err
+		return dtos.ProductResponse{}, err
 	}
 
-	return dto.ProductResponse{
+	return dtos.ProductResponse{
 		ID:        product.ID.String(),
 		Name:      product.Name,
 		Price:     product.Price,
@@ -101,7 +101,7 @@ func (s *productService) CreateProduct(
 	}, nil
 }
 
-func (s *productService) GetPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error) {
+func (s *productService) GetPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error) {
 	if user.Role == constant.Seller {
 		userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil {
@@ -109,7 +109,7 @@ func (s *productService) GetPagination(req dto.QueryProductRequest, user dto.Cur
 		}
 
 		if userStore == nil {
-			return []dto.ProductResponse{}, 0, nil
+			return []dtos.ProductResponse{}, 0, nil
 		}
 
 		strID := userStore.ID.String()
@@ -130,9 +130,9 @@ func (s *productService) GetProductBySlug(slug string) (*model.Product, error) {
 
 func (s *productService) UpdateProduct(
 	id string,
-	req dto.UpdateProductRequest,
-	user dto.CurrentUser,
-) (dto.ProductResponse, error) {
+	req dtos.UpdateProductRequest,
+	user dtos.CurrentUser,
+) (dtos.ProductResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -145,18 +145,18 @@ func (s *productService) UpdateProduct(
 	product, err := s.productQueryRepo.FindByIDPreloadStore(id)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{}, utils.NotFoundException("Product not found")
+		return dtos.ProductResponse{}, utils.NotFoundException("Product not found")
 	}
 
 	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{}, utils.ForbiddenException("User doesn't have a store")
+		return dtos.ProductResponse{}, utils.ForbiddenException("User doesn't have a store")
 	}
 
 	if product.StoreID != userStore.ID {
 		tx.Rollback()
-		return dto.ProductResponse{}, utils.ForbiddenException("You don't have permission to update this product")
+		return dtos.ProductResponse{}, utils.ForbiddenException("You don't have permission to update this product")
 	}
 
 	if req.Name != nil {
@@ -179,14 +179,14 @@ func (s *productService) UpdateProduct(
 
 	if err := s.productRepo.Update(tx, product); err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{}, utils.InternalServerErrorException("Failed to update product")
+		return dtos.ProductResponse{}, utils.InternalServerErrorException("Failed to update product")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.ProductResponse{}, err
+		return dtos.ProductResponse{}, err
 	}
 
-	return dto.ProductResponse{
+	return dtos.ProductResponse{
 		ID:        product.ID.String(),
 		Name:      product.Name,
 		Price:     product.Price,
@@ -205,8 +205,8 @@ func (s *productService) UpdateProduct(
 
 func (s *productService) DeleteProduct(
 	id string,
-	user dto.CurrentUser,
-) (dto.ProductResponse, error) {
+	user dtos.CurrentUser,
+) (dtos.ProductResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -219,20 +219,20 @@ func (s *productService) DeleteProduct(
 	product, err := s.productQueryRepo.FindByIDPreloadStore(id)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.NotFoundException("Product not found")
 	}
 
 	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.ForbiddenException("User doesn't have a store")
 	}
 
 	if product.StoreID != userStore.ID {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.ForbiddenException("You don't have permission to delete this product")
 	}
 
@@ -244,15 +244,15 @@ func (s *productService) DeleteProduct(
 
 	if err := s.productRepo.Delete(tx, product); err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.InternalServerErrorException("Failed to delete product")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.ProductResponse{}, err
+		return dtos.ProductResponse{}, err
 	}
 
-	return dto.ProductResponse{
+	return dtos.ProductResponse{
 		ID:        product.ID.String(),
 		Name:      product.Name,
 		Price:     product.Price,
@@ -270,9 +270,9 @@ func (s *productService) DeleteProduct(
 }
 
 func (s *productService) ActivateProduct(
-	req dto.ActivateProductRequest,
-	user dto.CurrentUser,
-) (dto.ProductResponse, error) {
+	req dtos.ActivateProductRequest,
+	user dtos.CurrentUser,
+) (dtos.ProductResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -285,7 +285,7 @@ func (s *productService) ActivateProduct(
 	product, err := s.productQueryRepo.FindByIDPreloadStore(req.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.NotFoundException("Product not found")
 	}
 
@@ -295,20 +295,20 @@ func (s *productService) ActivateProduct(
 		if !*req.IsActive {
 			status = "inactive"
 		}
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.BadRequestException("Product is already "+status, nil)
 	}
 
 	userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.ForbiddenException("User doesn't have a store")
 	}
 
 	if product.StoreID != userStore.ID {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.ForbiddenException("You don't have permission to activate/deactivate this product")
 	}
 
@@ -317,15 +317,15 @@ func (s *productService) ActivateProduct(
 
 	if err := s.productRepo.Update(tx, product); err != nil {
 		tx.Rollback()
-		return dto.ProductResponse{},
+		return dtos.ProductResponse{},
 			utils.InternalServerErrorException("Failed to activate/deactivate product")
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.ProductResponse{}, err
+		return dtos.ProductResponse{}, err
 	}
 
-	return dto.ProductResponse{
+	return dtos.ProductResponse{
 		ID:        product.ID.String(),
 		Name:      product.Name,
 		Price:     product.Price,

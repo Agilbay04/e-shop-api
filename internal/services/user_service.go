@@ -10,8 +10,8 @@ import (
 )
 
 type UserService interface {
-	Profile(user dto.CurrentUser) (dto.UserResponse, error)
-	UploadPicture(req dto.UploadPictureRequest, user dto.CurrentUser) (dto.UserResponse, error)
+	Profile(user dtos.CurrentUser) (dtos.UserResponse, error)
+	UploadPicture(req dtos.UploadPictureRequest, user dtos.CurrentUser) (dtos.UserResponse, error)
 }
 
 type userService struct {
@@ -35,20 +35,20 @@ func NewUserService(
 	}
 }
 
-func (s *userService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {
+func (s *userService) Profile(user dtos.CurrentUser) (dtos.UserResponse, error) {
 	cacheKey := "profile:user:" + user.ID
 
-	cached, err := utils.GetCache[dto.UserResponse](s.rdb, cacheKey)
+	cached, err := utils.GetCache[dtos.UserResponse](s.rdb, cacheKey)
 	if err == nil {
 		return cached, nil
 	}
 
 	userData, err := s.userQueryRepo.FindByID(user.ID)
 	if err != nil {
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
-	res := dto.UserResponse{
+	res := dtos.UserResponse{
 		ID:       userData.ID.String(),
 		Username: userData.Username,
 		Email:    userData.Email,
@@ -63,9 +63,9 @@ func (s *userService) Profile(user dto.CurrentUser) (dto.UserResponse, error) {
 }
 
 func (s *userService) UploadPicture(
-	req dto.UploadPictureRequest,
-	user dto.CurrentUser,
-) (dto.UserResponse, error) {
+	req dtos.UploadPictureRequest,
+	user dtos.CurrentUser,
+) (dtos.UserResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -84,7 +84,7 @@ func (s *userService) UploadPicture(
 	userData, err := s.userQueryRepo.FindByID(user.ID)
 	if err != nil {
 		tx.Rollback()
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
 	oldPath := userData.Picture
@@ -92,20 +92,20 @@ func (s *userService) UploadPicture(
 	newPath, err := uploader.UploadFile(req.Picture)
 	if err != nil {
 		tx.Rollback()
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
 	userData.Picture = newPath
 	if err := s.userRepo.Update(tx, userData); err != nil {
 		tx.Rollback()
 		uploader.DeleteFile(newPath)
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		uploader.DeleteFile(newPath)
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
 	if oldPath != "" {
@@ -115,7 +115,7 @@ func (s *userService) UploadPicture(
 	cacheKey := "profile:user:" + user.ID
 	_ = utils.DeleteCache(s.rdb, cacheKey)
 
-	return dto.UserResponse{
+	return dtos.UserResponse{
 		ID:       userData.ID.String(),
 		Username: userData.Username,
 		Email:    userData.Email,

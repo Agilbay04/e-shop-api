@@ -39,7 +39,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Map claims to struct
-		currentUser := dto.CurrentUser {
+		currentUser := dtos.CurrentUser {
 			ID:       claims.ID,
 			Username: claims.Username,
 			Email:    claims.Email,
@@ -63,7 +63,7 @@ func RoleMiddleware(roles ...constant.UserRole) gin.HandlerFunc {
             return
         }
 
-        user := val.(dto.CurrentUser)
+        user := val.(dtos.CurrentUser)
         
         // Check if user role is allowed
         isAllowed := slices.Contains(roles, user.Role)

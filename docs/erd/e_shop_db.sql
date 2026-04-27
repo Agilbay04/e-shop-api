@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict aJmBIO3L7VKA7TlJsdaeP6fiTN3gHuhh0Wi9Cy9jzvZPgxMtEHcCdGzpTOfSi6c
+\restrict L7gfvrIpZkzYJx1psVYwUYuVo0eRmKLMe95n7eXOjDA3K06YejdtfMiCq0aZhcW
 
 -- Dumped from database version 15.17
 -- Dumped by pg_dump version 16.13 (Ubuntu 16.13-0ubuntu0.24.04.1)
@@ -21,6 +21,17 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: migrations; Type: TABLE; Schema: public; Owner: admin
+--
+
+CREATE TABLE public.migrations (
+    id character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.migrations OWNER TO admin;
 
 --
 -- Name: order_items; Type: TABLE; Schema: public; Owner: admin
@@ -45,6 +56,22 @@ CREATE TABLE public.order_items (
 ALTER TABLE public.order_items OWNER TO admin;
 
 --
+-- Name: order_sequences; Type: TABLE; Schema: public; Owner: admin
+--
+
+CREATE TABLE public.order_sequences (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    date date NOT NULL,
+    last_sequence bigint NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone
+);
+
+
+ALTER TABLE public.order_sequences OWNER TO admin;
+
+--
 -- Name: orders; Type: TABLE; Schema: public; Owner: admin
 --
 
@@ -57,7 +84,8 @@ CREATE TABLE public.orders (
     deleted_at timestamp with time zone,
     user_id uuid,
     status character varying(20) DEFAULT 'draft'::character varying,
-    grand_total bigint NOT NULL
+    grand_total bigint NOT NULL,
+    order_number character varying(50)
 );
 
 
@@ -122,11 +150,20 @@ CREATE TABLE public.users (
     email text NOT NULL,
     password text NOT NULL,
     role character varying(20) DEFAULT 'buyer'::character varying,
-    is_active boolean DEFAULT true
+    is_active boolean DEFAULT true,
+    picture character varying(500)
 );
 
 
 ALTER TABLE public.users OWNER TO admin;
+
+--
+-- Name: migrations migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
+--
+
+ALTER TABLE ONLY public.migrations
+    ADD CONSTRAINT migrations_pkey PRIMARY KEY (id);
+
 
 --
 -- Name: order_items order_items_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
@@ -134,6 +171,22 @@ ALTER TABLE public.users OWNER TO admin;
 
 ALTER TABLE ONLY public.order_items
     ADD CONSTRAINT order_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: order_sequences order_sequences_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
+--
+
+ALTER TABLE ONLY public.order_sequences
+    ADD CONSTRAINT order_sequences_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: orders orders_order_number_key; Type: CONSTRAINT; Schema: public; Owner: admin
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_order_number_key UNIQUE (order_number);
 
 
 --
@@ -197,6 +250,20 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE INDEX idx_order_items_deleted_at ON public.order_items USING btree (deleted_at);
+
+
+--
+-- Name: idx_order_sequences_date; Type: INDEX; Schema: public; Owner: admin
+--
+
+CREATE UNIQUE INDEX idx_order_sequences_date ON public.order_sequences USING btree (date);
+
+
+--
+-- Name: idx_order_sequences_deleted_at; Type: INDEX; Schema: public; Owner: admin
+--
+
+CREATE INDEX idx_order_sequences_deleted_at ON public.order_sequences USING btree (deleted_at);
 
 
 --
@@ -286,5 +353,5 @@ ALTER TABLE ONLY public.stores
 -- PostgreSQL database dump complete
 --
 
-\unrestrict aJmBIO3L7VKA7TlJsdaeP6fiTN3gHuhh0Wi9Cy9jzvZPgxMtEHcCdGzpTOfSi6c
+\unrestrict L7gfvrIpZkzYJx1psVYwUYuVo0eRmKLMe95n7eXOjDA3K06YejdtfMiCq0aZhcW
 

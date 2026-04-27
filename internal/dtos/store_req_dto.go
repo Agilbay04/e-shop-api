@@ -1,4 +1,4 @@
-package dto
+package dtos
 
 type CreateStoreRequest struct {
 	Name        string    `json:"name" binding:"required"`

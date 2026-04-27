@@ -22,7 +22,7 @@ func NewHealthHandler(db *gorm.DB, rdb *redis.Client) *HealthHandler {
 }
 
 func (h *HealthHandler) Health(c *gin.Context) {
-	c.JSON(http.StatusOK, dto.HealthResponse{
+	c.JSON(http.StatusOK, dtos.HealthResponse{
 		Status:   "healthy",
 		Service:  "e-shop-api",
 		Version:  "1.0.0",
@@ -35,11 +35,11 @@ func (h *HealthHandler) Readiness(c *gin.Context) {
 
 	dbSQL, err := h.db.DB()
 	if err != nil {
-		checks["database"] = dto.ComponentStatus{
+		checks["database"] = dtos.ComponentStatus{
 			Status:  "unhealthy",
 			Message: "failed to get database connection",
 		}
-		c.JSON(http.StatusServiceUnavailable, dto.ReadinessCheck{
+		c.JSON(http.StatusServiceUnavailable, dtos.ReadinessCheck{
 			Status: "not_ready",
 			Checks: checks,
 		})
@@ -47,32 +47,32 @@ func (h *HealthHandler) Readiness(c *gin.Context) {
 	}
 
 	if err := dbSQL.Ping(); err != nil {
-		checks["database"] = dto.ComponentStatus{
+		checks["database"] = dtos.ComponentStatus{
 			Status:  "unhealthy",
 			Message: err.Error(),
 		}
-		c.JSON(http.StatusServiceUnavailable, dto.ReadinessCheck{
+		c.JSON(http.StatusServiceUnavailable, dtos.ReadinessCheck{
 			Status: "not_ready",
 			Checks: checks,
 		})
 		return
 	}
-	checks["database"] = dto.ComponentStatus{Status: "healthy"}
+	checks["database"] = dtos.ComponentStatus{Status: "healthy"}
 
 	if err := h.rdb.Ping(c.Request.Context()).Err(); err != nil {
-		checks["redis"] = dto.ComponentStatus{
+		checks["redis"] = dtos.ComponentStatus{
 			Status:  "unhealthy",
 			Message: err.Error(),
 		}
-		c.JSON(http.StatusServiceUnavailable, dto.ReadinessCheck{
+		c.JSON(http.StatusServiceUnavailable, dtos.ReadinessCheck{
 			Status: "not_ready",
 			Checks: checks,
 		})
 		return
 	}
-	checks["redis"] = dto.ComponentStatus{Status: "healthy"}
+	checks["redis"] = dtos.ComponentStatus{Status: "healthy"}
 
-	c.JSON(http.StatusOK, dto.ReadinessCheck{
+	c.JSON(http.StatusOK, dtos.ReadinessCheck{
 		Status: "ready",
 		Checks: checks,
 	})

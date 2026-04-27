@@ -64,7 +64,7 @@ func ResponseMiddleware() gin.HandlerFunc {
 			if isPagination == true {
 				total, _ := ctx.Get("total_data")
         		filter, _ := ctx.Get("pagination_filter")
-        		f := filter.(dto.PaginationParam)
+        		f := filter.(dtos.PaginationParam)
         
         		handlers.RespondPagination(ctx, data, total.(int64), f.Page, f.Limit, message.(string))
         		return

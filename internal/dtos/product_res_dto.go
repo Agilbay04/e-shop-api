@@ -1,4 +1,4 @@
-package dto
+package dtos
 
 type ProductResponse struct {
 	ID    		string  `json:"id"`

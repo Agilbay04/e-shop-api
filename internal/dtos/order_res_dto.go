@@ -1,4 +1,4 @@
-package dto
+package dtos
 
 import "e-shop-api/internal/constants"
 

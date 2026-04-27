@@ -14,7 +14,7 @@ type StoreQueryRepository interface {
 	FindAll() ([]model.Store, error)
 	FindByID(id string) (*model.Store, error)
 	FindByUserID(userID string) (*model.Store, error)
-	FindAllPagination(req dto.QueryStoreParam) ([]dto.StoreResponse, int64, error)
+	FindAllPagination(req dtos.QueryStoreParam) ([]dtos.StoreResponse, int64, error)
 	FindByIDWithLock(tx *gorm.DB, id string) (*model.Store, error)
 }
 
@@ -44,7 +44,7 @@ func (r *storeQueryRepository) FindByUserID(userID string) (*model.Store, error)
 	return &store, err
 }
 
-func (r *storeQueryRepository) FindAllPagination(req dto.QueryStoreParam) ([]dto.StoreResponse, int64, error) {
+func (r *storeQueryRepository) FindAllPagination(req dtos.QueryStoreParam) ([]dtos.StoreResponse, int64, error) {
 	var stores []model.Store
 	var total int64
 
@@ -66,13 +66,13 @@ func (r *storeQueryRepository) FindAllPagination(req dto.QueryStoreParam) ([]dto
 		return nil, 0, err
 	}
 
-	storesResponse := make([]dto.StoreResponse, len(stores))
+	storesResponse := make([]dtos.StoreResponse, len(stores))
 	for i, store := range stores {
 		deletedAt := ""
 		if store.DeletedAt.Valid {
 			deletedAt = store.DeletedAt.Time.Format(time.RFC3339)
 		}
-		storesResponse[i] = dto.StoreResponse{
+		storesResponse[i] = dtos.StoreResponse{
 			ID:          store.ID,
 			Name:        store.Name,
 			Description: store.Description,
@@ -88,7 +88,7 @@ func (r *storeQueryRepository) FindAllPagination(req dto.QueryStoreParam) ([]dto
 	return storesResponse, total, nil
 }
 
-func (r *storeQueryRepository) applyFilters(query *gorm.DB, req dto.QueryStoreParam) *gorm.DB {
+func (r *storeQueryRepository) applyFilters(query *gorm.DB, req dtos.QueryStoreParam) *gorm.DB {
 	if req.Search != "" {
 		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
 	}

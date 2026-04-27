@@ -11,7 +11,7 @@ import (
 )
 
 type ProductQueryRepository interface {
-	FindAllPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error)
+	FindAllPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error)
 	FindBySlug(slug string) (*model.Product, error)
 	FindByID(id string) (*model.Product, error)
 	FindByIDPreloadStore(id string) (*model.Product, error)
@@ -26,7 +26,7 @@ func NewProductQueryRepository(db *gorm.DB) ProductQueryRepository {
 	return &productQueryRepository{db}
 }
 
-func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest, user dto.CurrentUser) ([]dto.ProductResponse, int64, error) {
+func (r *productQueryRepository) FindAllPagination(req dtos.QueryProductRequest, user dtos.CurrentUser) ([]dtos.ProductResponse, int64, error) {
 	var products []model.Product
 	var total int64
 
@@ -51,10 +51,10 @@ func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest, 
 		return nil, 0, err
 	}
 
-	// Map model.Product to dto.ProductResponse
-	productsResponse := make([]dto.ProductResponse, len(products))
+	// Map model.Product to dtos.ProductResponse
+	productsResponse := make([]dtos.ProductResponse, len(products))
 	for i, product := range products {
-		productsResponse[i] = dto.ProductResponse{
+		productsResponse[i] = dtos.ProductResponse{
 			ID:          product.ID.String(),
 			Name:        product.Name,
 			Description: product.Description,
@@ -75,7 +75,7 @@ func (r *productQueryRepository) FindAllPagination(req dto.QueryProductRequest, 
 	return productsResponse, total, nil
 }
 
-func (r *productQueryRepository) applyFilters(query *gorm.DB, req dto.QueryProductRequest) *gorm.DB {
+func (r *productQueryRepository) applyFilters(query *gorm.DB, req dtos.QueryProductRequest) *gorm.DB {
 	if req.Search != "" {
 		query = query.Where("name ILIKE ?", "%"+req.Search+"%")
 	}

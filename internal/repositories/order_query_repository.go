@@ -12,7 +12,7 @@ import (
 type OrderQueryRepository interface {
 	CountOrderItemsByStoreAndOrderStatus(tx *gorm.DB, storeID string, statuses []constant.OrderStatus) (int64, error)
 	FindByIDWithLock(tx *gorm.DB, orderID string) (*model.Order, error)
-	FindAllPagination(userID string, storeID string, statuses []constant.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error)
+	FindAllPagination(userID string, storeID string, statuses []constant.OrderStatus, req dtos.QueryOrderParam) ([]dtos.OrderResponse, int64, error)
 }
 
 type orderQueryRepository struct {
@@ -57,7 +57,7 @@ func (r *orderQueryRepository) FindByIDWithLock(tx *gorm.DB, orderID string) (*m
 	return &order, nil
 }
 
-func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, statuses []constant.OrderStatus, req dto.QueryOrderParam) ([]dto.OrderResponse, int64, error) {
+func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, statuses []constant.OrderStatus, req dtos.QueryOrderParam) ([]dtos.OrderResponse, int64, error) {
 	var orders []model.Order
 	var total int64
 
@@ -82,11 +82,11 @@ func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, 
 		return nil, 0, err
 	}
 
-	responses := make([]dto.OrderResponse, len(orders))
+	responses := make([]dtos.OrderResponse, len(orders))
 	for i, order := range orders {
-		orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
+		orderItems := make([]dtos.OrderItemResponse, len(order.OrderItems))
 		for j, item := range order.OrderItems {
-			orderItems[j] = dto.OrderItemResponse{
+			orderItems[j] = dtos.OrderItemResponse{
 				StoreID:     item.StoreID.String(),
 				StoreName:   item.Product.Store.Name,
 				ProductID:   item.ProductID.String(),
@@ -98,7 +98,7 @@ func (r *orderQueryRepository) FindAllPagination(userID string, storeID string, 
 			}
 		}
 
-		responses[i] = dto.OrderResponse{
+		responses[i] = dtos.OrderResponse{
 			ID:         order.ID.String(),
 			UserID:     order.UserID.String(),
 			Username:   order.User.Username,

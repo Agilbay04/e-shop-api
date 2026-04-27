@@ -15,11 +15,11 @@ import (
 )
 
 type AuthService interface {
-	Register(req dto.RegisterRequest) (dto.UserResponse, error)
-	Login(req dto.LoginRequest) (dto.LoginResponse, error)
-	RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error)
-	ForgotPassword(req dto.ForgotPasswordRequest) error
-	ResetPassword(req dto.ResetPasswordRequest) error
+	Register(req dtos.RegisterRequest) (dtos.UserResponse, error)
+	Login(req dtos.LoginRequest) (dtos.LoginResponse, error)
+	RefreshToken(req dtos.RefreshTokenRequest) (dtos.RefreshTokenResponse, error)
+	ForgotPassword(req dtos.ForgotPasswordRequest) error
+	ResetPassword(req dtos.ResetPasswordRequest) error
 }
 
 type authService struct {
@@ -46,7 +46,7 @@ func NewAuthService(
 	}
 }
 
-func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error) {
+func (s *authService) Register(req dtos.RegisterRequest) (dtos.UserResponse, error) {
 	tx := s.db.Begin()
 
 	defer func() {
@@ -59,7 +59,7 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 	u, err := s.userQueryRepo.FindByEmail(req.Email)
 	if err == nil && u != nil {
 		tx.Rollback()
-		return dto.UserResponse{}, utils.BadRequestException("Email already use by another account", err)
+		return dtos.UserResponse{}, utils.BadRequestException("Email already use by another account", err)
 	}
 
 	newUser := model.User{
@@ -71,14 +71,14 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 
 	if err := s.userRepo.Create(tx, &newUser); err != nil {
 		tx.Rollback()
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return dto.UserResponse{}, err
+		return dtos.UserResponse{}, err
 	}
 
-	return dto.UserResponse{
+	return dtos.UserResponse{
 		ID:       newUser.ID.String(),
 		Username: newUser.Username,
 		Email:    newUser.Email,
@@ -86,7 +86,7 @@ func (s *authService) Register(req dto.RegisterRequest) (dto.UserResponse, error
 	}, nil
 }
 
-func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
+func (s *authService) Login(req dtos.LoginRequest) (dtos.LoginResponse, error) {
 	cacheKey := "user:email:" + req.Email
 
 	u, err := utils.GetCache[*model.User](s.rdb, cacheKey)
@@ -94,7 +94,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	if err != nil {
 		u, err = s.userQueryRepo.FindByEmail(req.Email)
 		if err != nil {
-			return dto.LoginResponse{}, utils.UnprocessableEntityException("User email " + req.Email + " is not registered")
+			return dtos.LoginResponse{}, utils.UnprocessableEntityException("User email " + req.Email + " is not registered")
 		}
 
 		ttl := utils.GetEnvTime("REDIS_CACHE_TTL", constant.RedisCacheTtl)
@@ -103,17 +103,17 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
 	if err != nil {
-		return dto.LoginResponse{}, utils.UnauthorizedException("Invalid email or password")
+		return dtos.LoginResponse{}, utils.UnauthorizedException("Invalid email or password")
 	}
 
 	accessToken, err := utils.GenerateAccessToken(u.ID.String(), u.Username, u.Email, u.Picture, u.Role)
 	if err != nil {
-		return dto.LoginResponse{}, utils.UnauthorizedException("Failed to generate access token")
+		return dtos.LoginResponse{}, utils.UnauthorizedException("Failed to generate access token")
 	}
 
 	refreshToken, err := utils.GenerateRefreshToken(u.ID.String())
 	if err != nil {
-		return dto.LoginResponse{}, utils.UnauthorizedException("Failed to generate refresh token")
+		return dtos.LoginResponse{}, utils.UnauthorizedException("Failed to generate refresh token")
 	}
 
 	refreshTTL := utils.GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
@@ -122,7 +122,7 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 
 	expiresIn := int64(utils.GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl).Seconds())
 
-	return dto.LoginResponse{
+	return dtos.LoginResponse{
 		AccessToken:   	accessToken,
 		RefreshToken: 	refreshToken,
 		ExpiresIn:   	expiresIn,
@@ -130,31 +130,31 @@ func (s *authService) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	}, nil
 }
 
-func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshTokenResponse, error) {
+func (s *authService) RefreshToken(req dtos.RefreshTokenRequest) (dtos.RefreshTokenResponse, error) {
 	claims, err := utils.ParseRefreshToken(req.RefreshToken)
 	if err != nil {
-		return dto.RefreshTokenResponse{}, utils.UnauthorizedException("Invalid refresh token")
+		return dtos.RefreshTokenResponse{}, utils.UnauthorizedException("Invalid refresh token")
 	}
 
 	redisKey := "refresh_token:" + claims.UserID
 	storedToken, err := utils.GetCache[string](s.rdb, redisKey)
 	if err != nil || storedToken != req.RefreshToken {
-		return dto.RefreshTokenResponse{}, utils.UnauthorizedException("Refresh token revoked or expired")
+		return dtos.RefreshTokenResponse{}, utils.UnauthorizedException("Refresh token revoked or expired")
 	}
 
 	u, err := s.userQueryRepo.FindByID(claims.UserID)
 	if err != nil {
-		return dto.RefreshTokenResponse{}, utils.UnauthorizedException("User not found")
+		return dtos.RefreshTokenResponse{}, utils.UnauthorizedException("User not found")
 	}
 
 	accessToken, err := utils.GenerateAccessToken(u.ID.String(), u.Username, u.Email, u.Picture, u.Role)
 	if err != nil {
-		return dto.RefreshTokenResponse{}, utils.UnauthorizedException("Failed to generate access token")
+		return dtos.RefreshTokenResponse{}, utils.UnauthorizedException("Failed to generate access token")
 	}
 
 	newRefreshToken, err := utils.GenerateRefreshToken(u.ID.String())
 	if err != nil {
-		return dto.RefreshTokenResponse{}, utils.UnauthorizedException("Failed to generate refresh token")
+		return dtos.RefreshTokenResponse{}, utils.UnauthorizedException("Failed to generate refresh token")
 	}
 
 	refreshTTL := utils.GetEnvTime("JWT_REFRESH_TTL", constant.JwtRefreshTtl)
@@ -162,7 +162,7 @@ func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshToke
 
 	expiresIn := int64(utils.GetEnvTime("JWT_ACCESS_TTL", constant.JwtAccessTtl).Seconds())
 
-	return dto.RefreshTokenResponse{
+	return dtos.RefreshTokenResponse{
 		AccessToken:  	accessToken,
 		RefreshToken: 	newRefreshToken,
 		ExpiresIn:   	expiresIn,
@@ -170,7 +170,7 @@ func (s *authService) RefreshToken(req dto.RefreshTokenRequest) (dto.RefreshToke
 	}, nil
 }
 
-func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {
+func (s *authService) ForgotPassword(req dtos.ForgotPasswordRequest) error {
     // Check email is registered
     u, err := s.userQueryRepo.FindByEmail(req.Email)
     if err != nil {
@@ -208,7 +208,7 @@ func (s *authService) ForgotPassword(req dto.ForgotPasswordRequest) error {
 	return nil
 }
 
-func (s *authService) ResetPassword(req dto.ResetPasswordRequest) error {
+func (s *authService) ResetPassword(req dtos.ResetPasswordRequest) error {
     cacheKey := "reset_password:" + req.Token
 
     // Get email from Redis based on token

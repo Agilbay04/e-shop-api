@@ -14,11 +14,11 @@ import (
 )
 
 type OrderService interface {
-	CreateOrder(req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error)
-	UpdateOrder(orderId string, req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error)
-	CancelOrder(orderId string, user dto.CurrentUser) (dto.OrderResponse, error)
-	ConfirmOrder(orderId string, user dto.CurrentUser) (dto.OrderResponse, error)
-	GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) ([]dto.OrderResponse, int64, error)
+	CreateOrder(req dtos.OrderRequest, user dtos.CurrentUser) (dtos.OrderResponse, error)
+	UpdateOrder(orderId string, req dtos.OrderRequest, user dtos.CurrentUser) (dtos.OrderResponse, error)
+	CancelOrder(orderId string, user dtos.CurrentUser) (dtos.OrderResponse, error)
+	ConfirmOrder(orderId string, user dtos.CurrentUser) (dtos.OrderResponse, error)
+	GetOrders(req dtos.QueryOrderParam, user dtos.CurrentUser) ([]dtos.OrderResponse, int64, error)
 }
 
 type orderService struct {
@@ -55,9 +55,9 @@ func NewOrderService(
 }
 
 func (o *orderService) CreateOrder(
-	req dto.OrderRequest,
-	user dto.CurrentUser,
-) (dto.OrderResponse, error) {
+	req dtos.OrderRequest,
+	user dtos.CurrentUser,
+) (dtos.OrderResponse, error) {
 	// Set Status
 	if req.IsCheckout {
 		req.Status = constant.Pending
@@ -72,7 +72,7 @@ func (o *orderService) CreateOrder(
 	orderNumber, err := o.generateOrderNumber(tx)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Safety net: Rollback if panic
@@ -87,25 +87,25 @@ func (o *orderService) CreateOrder(
 	totalOrderPrice, orderItems, itemResponses, err := o.prepareOrderData(tx, req, user)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Save Order
 	newOrder, err := o.saveOrder(tx, user.ID, totalOrderPrice, req.Status, orderNumber)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Save Bulk Order Items
 	if err := o.saveOrderItems(tx, newOrder.ID, orderItems); err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Commit Transaction
 	if err := tx.Commit().Error; err != nil {
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// send notification
@@ -117,7 +117,7 @@ func (o *orderService) CreateOrder(
 		)
 	}
 
-	return dto.OrderResponse{
+	return dtos.OrderResponse{
 		ID:          newOrder.ID.String(),
 		OrderNumber: newOrder.OrderNumber,
 		UserID:      user.ID,
@@ -130,12 +130,12 @@ func (o *orderService) CreateOrder(
 
 func (o *orderService) prepareOrderData(
 	tx *gorm.DB,
-	req dto.OrderRequest,
-	user dto.CurrentUser,
-) (int, []model.OrderItem, []dto.OrderItemResponse, error) {
+	req dtos.OrderRequest,
+	user dtos.CurrentUser,
+) (int, []model.OrderItem, []dtos.OrderItemResponse, error) {
 	var total int
 	var items []model.OrderItem
-	var responses []dto.OrderItemResponse
+	var responses []dtos.OrderItemResponse
 
 	for _, reqItem := range req.OrderItems {
 		// Locking for prevent race condition product stock
@@ -167,7 +167,7 @@ func (o *orderService) prepareOrderData(
 			SubTotal:  subTotal,
 		})
 
-		responses = append(responses, dto.OrderItemResponse{
+		responses = append(responses, dtos.OrderItemResponse{
 			StoreID:     product.StoreID.String(),
 			StoreName:   product.Store.Name,
 			ProductID:   product.ID.String(),
@@ -237,7 +237,7 @@ func (o *orderService) saveOrderItems(
 	return o.orderRepo.CreateOrderItems(tx, items)
 }
 
-func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dto.CurrentUser) (dto.OrderResponse, error) {
+func (o *orderService) UpdateOrder(orderID string, req dtos.OrderRequest, user dtos.CurrentUser) (dtos.OrderResponse, error) {
 	// Set Status
 	if req.IsCheckout {
 		req.Status = constant.Pending
@@ -257,14 +257,14 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 	order, err := o.orderQueryRepo.FindByIDWithLock(tx, orderID)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.NotFoundException("Order not found")
 	}
 
 	// Validate only admin or order creator can update order
 	if user.Role != constant.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.ForbiddenException("You are not authorized to update this order")
 	}
 
@@ -272,7 +272,7 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 	validStatus := []constant.OrderStatus{constant.Draft}
 	if !slices.Contains(validStatus, order.Status) {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.BadRequestException("Only "+string(constant.Draft)+" order can be updated", nil)
 	}
 
@@ -280,28 +280,28 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 	total, items, responses, err := o.prepareOrderData(tx, req, user)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 	order.GrandTotal = total
 	order.Status = req.Status
 	if err := o.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Update OrderItems
 	if err := o.orderRepo.DeleteOrderItems(tx, orderID); err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 	if err := o.saveOrderItems(tx, order.ID, items); err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Commit Transaction
 	if err := tx.Commit().Error; err != nil {
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// send notification
@@ -313,7 +313,7 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 		)
 	}
 
-	return dto.OrderResponse{
+	return dtos.OrderResponse{
 		ID:         order.ID.String(),
 		UserID:     order.UserID.String(),
 		Username:   order.User.Username,
@@ -323,7 +323,7 @@ func (o *orderService) UpdateOrder(orderID string, req dto.OrderRequest, user dt
 	}, nil
 }
 
-func (s *orderService) GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) ([]dto.OrderResponse, int64, error) {
+func (s *orderService) GetOrders(req dtos.QueryOrderParam, user dtos.CurrentUser) ([]dtos.OrderResponse, int64, error) {
 	var userID, storeID string
 	var statuses []constant.OrderStatus
 
@@ -333,7 +333,7 @@ func (s *orderService) GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) 
 		case constant.Seller:
 			userStore, err := s.storeQueryRepo.FindByUserID(user.ID)
 		if err != nil || userStore == nil {
-			return []dto.OrderResponse{}, 0, nil
+			return []dtos.OrderResponse{}, 0, nil
 		}
 		storeID = userStore.ID.String()
 	}
@@ -345,7 +345,7 @@ func (s *orderService) GetOrders(req dto.QueryOrderParam, user dto.CurrentUser) 
 	return s.orderQueryRepo.FindAllPagination(userID, storeID, statuses, req)
 }
 
-func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.OrderResponse, error) {
+func (s *orderService) CancelOrder(orderID string, user dtos.CurrentUser) (dtos.OrderResponse, error) {
 	// Begin Transaction
 	tx := s.db.Begin()
 	defer func() {
@@ -358,14 +358,14 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	order, err := s.orderQueryRepo.FindByIDWithLock(tx, orderID)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.NotFoundException("Order not found")
 	}
 
 	// Validate only admin or order creator can cancel order
 	if user.Role != constant.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.ForbiddenException("You are not authorized to cancel this order")
 	}
 
@@ -373,7 +373,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	validStatus := []constant.OrderStatus{constant.Draft, constant.Pending}
 	if !slices.Contains(validStatus, order.Status) {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.BadRequestException(
 				"Only "+string(constant.Draft)+" and "+string(constant.Pending)+" orders can be cancelled. Current status: "+string(order.Status),
 				nil)
@@ -384,7 +384,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Rollback Stock for each OrderItem
@@ -392,19 +392,19 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 		for _, item := range order.OrderItems {
 			if err := s.productRepo.AddStock(tx, item.ProductID.String(), item.Quantity); err != nil {
 				tx.Rollback()
-				return dto.OrderResponse{}, err
+				return dtos.OrderResponse{}, err
 			}
 		}
 	}
 
 	// Commit Transaction
 	if err := tx.Commit().Error; err != nil {
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
-	orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
+	orderItems := make([]dtos.OrderItemResponse, len(order.OrderItems))
 	for i, item := range order.OrderItems {
-		orderItems[i] = dto.OrderItemResponse{
+		orderItems[i] = dtos.OrderItemResponse{
 			StoreID:     item.StoreID.String(),
 			StoreName:   item.Store.Name,
 			ProductID:   item.ProductID.String(),
@@ -423,7 +423,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 		"Order with ID "+orderID+" has been cancelled",
 	)
 
-	return dto.OrderResponse{
+	return dtos.OrderResponse{
 		ID:         order.ID.String(),
 		UserID:     order.UserID.String(),
 		Username:   order.User.Username,
@@ -433,7 +433,7 @@ func (s *orderService) CancelOrder(orderID string, user dto.CurrentUser) (dto.Or
 	}, nil
 }
 
-func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.OrderResponse, error) {
+func (s *orderService) ConfirmOrder(orderID string, user dtos.CurrentUser) (dtos.OrderResponse, error) {
 	// Begin Transaction
 	tx := s.db.Begin()
 	defer func() {
@@ -446,21 +446,21 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 	order, err := s.orderQueryRepo.FindByIDWithLock(tx, orderID)
 	if err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.NotFoundException("Order not found")
 	}
 
 	// Validate only admin or order creator can confirm order
 	if user.Role != constant.Admin && order.UserID.String() != user.ID {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.ForbiddenException("You are not authorized to cancel this order")
 	}
 
 	// Validate only pending order can be confirmed
 	if order.Status != constant.Pending {
 		tx.Rollback()
-		return dto.OrderResponse{},
+		return dtos.OrderResponse{},
 			utils.BadRequestException(
 				"Only "+string(constant.Pending)+" orders can be confirmed. Current status: "+string(order.Status),
 				nil)
@@ -471,17 +471,17 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 	order.UpdatedBy = uuid.MustParse(user.ID)
 	if err := s.orderRepo.UpdateOrder(tx, order); err != nil {
 		tx.Rollback()
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
 	// Commit Transaction
 	if err := tx.Commit().Error; err != nil {
-		return dto.OrderResponse{}, err
+		return dtos.OrderResponse{}, err
 	}
 
-	orderItems := make([]dto.OrderItemResponse, len(order.OrderItems))
+	orderItems := make([]dtos.OrderItemResponse, len(order.OrderItems))
 	for i, item := range order.OrderItems {
-		orderItems[i] = dto.OrderItemResponse{
+		orderItems[i] = dtos.OrderItemResponse{
 			StoreID:     item.StoreID.String(),
 			StoreName:   item.Store.Name,
 			ProductID:   item.ProductID.String(),
@@ -500,7 +500,7 @@ func (s *orderService) ConfirmOrder(orderID string, user dto.CurrentUser) (dto.O
 		"Order with ID "+orderID+" has been confirmed",
 	)
 
-	return dto.OrderResponse{
+	return dtos.OrderResponse{
 		ID:         order.ID.String(),
 		UserID:     order.UserID.String(),
 		Username:   order.User.Username,

@@ -65,7 +65,7 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 ```diagram
 +-------------------------------------------------------------+
 |                       Handler Layer                         |
-|                    (internal/handler)                       |
+|                    (internal/handlers)                      |
 |   - HTTP request/response handling                          |
 |   - Input validation & binding                              |
 |   - Calls services, returns formatted responses             |
@@ -74,16 +74,17 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
                             v |
 +-------------------------------------------------------------+
 |                       Service Layer                         |
-|                    (internal/service)                       |
+|                    (internal/services)                      |
 |   - Business logic & orchestration                          |
 |   - Transaction management (Begin/Commit/Rollback)          |
 |   - Depends on repository interfaces                        |
+|   - Caches data in Redis                                    |
 +-------------------------------------------------------------+
                             | ^
                             v |
 +-------------------------------------------------------------+
 |                      Repository Layer                       |
-|                   (internal/repository)                     |
+|                   (internal/repositories)                    |
 |   - *Repository: Write operations (Create, Update)          |
 |   - *QueryRepository: Read operations (Find, List)          |
 |   - Database operations via GORM                            |
@@ -95,7 +96,7 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 The project uses a **Registry Pattern** to manage dependencies:
 
 ```go
-// internal/app/
+// internal/apps/
 NewRepositoryRegistry(db)    // Creates all repository instances
 NewServiceRegistry(...)      // Injects repositories into services
 NewHandlerRegistry(...)    // Injects services into handlers
@@ -120,12 +121,12 @@ RegisterRoutes(...)       // Wires up HTTP handlers
 
 ### Additional Patterns
 
-| Pattern                 | Where Used                                                         |
-|-------------------------|--------------------------------------------------------------------|
-| **DTO Pattern**         | `internal/dto/` - Request/Response objects separate from DB models |
-| **Registry Pattern**    | `internal/app/` - Centralized DI container                         |
-| **Transaction Script**  | Services manage explicit DB transactions                           |
-| **Factory Pattern**     | `NewXxxService()`, `NewXxxHandler()` constructors                  |
+| Pattern                 | Where Used                                                          |
+|-------------------------|---------------------------------------------------------------------|
+| **DTO Pattern**         | `internal/dtos/` - Request/Response objects separate from DB models |
+| **Registry Pattern**    | `internal/apps/` - Centralized DI container                         |
+| **Transaction Script**  | Services manage explicit DB transactions                            |
+| **Factory Pattern**     | `NewXxxService()`, `NewXxxHandler()` constructors                   |
 
 This architecture provides:
 
@@ -215,13 +216,13 @@ logger.L.Warn("Rate limit exceeded", zap.String("ip", clientIP))
 
 ## Circuit Breaker
 
-This project uses **gobreaker** (from sony/gobreaker) for circuit breaker pattern and auto-retry mechanism. The utility is configured in `internal/pkg/util/circuit_breaker.go`.
+This project uses **gobreaker** (from sony/gobreaker) for circuit breaker pattern and auto-retry mechanism. The utility is configured in `internal/pkg/utils/circuit_breaker.go`.
 
 ### Initialization Circuit Breaker
 
 ```go
 import (
-    "e-shop-api/internal/pkg/util"
+    "e-shop-api/internal/pkg/utils"
 )
 
 // Create a circuit breaker
