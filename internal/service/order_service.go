@@ -6,7 +6,10 @@ import (
 	"e-shop-api/internal/model"
 	"e-shop-api/internal/pkg/util"
 	"e-shop-api/internal/repository"
+	"crypto/rand"
+	"encoding/base64"
 	"slices"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -21,13 +24,14 @@ type OrderService interface {
 }
 
 type orderService struct {
-	db               *gorm.DB
-	orderRepo        repository.OrderRepository
-	orderQueryRepo   repository.OrderQueryRepository
-	productRepo      repository.ProductRepository
-	productQueryRepo repository.ProductQueryRepository
-	storeQueryRepo   repository.StoreQueryRepository
-	notifService NotificationService
+	db                  *gorm.DB
+	orderRepo           repository.OrderRepository
+	orderQueryRepo      repository.OrderQueryRepository
+	productRepo         repository.ProductRepository
+	productQueryRepo   repository.ProductQueryRepository
+	storeQueryRepo      repository.StoreQueryRepository
+	orderSequenceRepo   repository.OrderSequenceRepository
+	notifService       NotificationService
 }
 
 func NewOrderService(
@@ -37,6 +41,7 @@ func NewOrderService(
 	productRepo repository.ProductRepository,
 	productQueryRepo repository.ProductQueryRepository,
 	storeQueryRepo repository.StoreQueryRepository,
+	orderSequenceRepo repository.OrderSequenceRepository,
 	notifService NotificationService,
 ) OrderService {
 	return &orderService{
@@ -46,6 +51,7 @@ func NewOrderService(
 		productRepo,
 		productQueryRepo,
 		storeQueryRepo,
+		orderSequenceRepo,
 		notifService,
 	}
 }
@@ -64,6 +70,13 @@ func (o *orderService) CreateOrder(
 	// Begin Transaction
 	tx := o.db.Begin()
 
+	// Generate Order Number
+	orderNumber, err := o.generateOrderNumber(tx)
+	if err != nil {
+		tx.Rollback()
+		return dto.OrderResponse{}, err
+	}
+
 	// Safety net: Rollback if panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -80,7 +93,7 @@ func (o *orderService) CreateOrder(
 	}
 
 	// Save Order
-	newOrder, err := o.saveOrder(tx, user.ID, totalOrderPrice, req.Status)
+	newOrder, err := o.saveOrder(tx, user.ID, totalOrderPrice, req.Status, orderNumber)
 	if err != nil {
 		tx.Rollback()
 		return dto.OrderResponse{}, err
@@ -107,12 +120,13 @@ func (o *orderService) CreateOrder(
 	}
 
 	return dto.OrderResponse{
-		ID:         newOrder.ID.String(),
-		UserID:     user.ID,
-		Username:   user.Username,
-		GrandTotal: totalOrderPrice,
-		Status:     newOrder.Status,
-		OrderItems: itemResponses,
+		ID:          newOrder.ID.String(),
+		OrderNumber: newOrder.OrderNumber,
+		UserID:      user.ID,
+		Username:    user.Username,
+		GrandTotal:  totalOrderPrice,
+		Status:      newOrder.Status,
+		OrderItems:  itemResponses,
 	}, nil
 }
 
@@ -182,17 +196,45 @@ func (o *orderService) saveOrder(
 	userID string,
 	total int,
 	status constant.OrderStatus,
+	orderNumber string,
 ) (*model.Order, error) {
 	newOrder := &model.Order{
-		Base:       model.Base{CreatedBy: uuid.MustParse(userID)},
-		UserID:     uuid.MustParse(userID),
+		Base:        model.Base{CreatedBy: uuid.MustParse(userID)},
+		UserID:      uuid.MustParse(userID),
 		GrandTotal: total,
 		Status:     status,
+		OrderNumber: orderNumber,
 	}
 	if err := o.orderRepo.CreateOrder(tx, newOrder); err != nil {
 		return nil, err
 	}
 	return newOrder, nil
+}
+
+func (o *orderService) generateOrderNumber(tx *gorm.DB) (string, error) {
+	dateStr := time.Now().Format("20060102")
+
+	_, err := o.orderSequenceRepo.GetNextSequence(tx, dateStr)
+	if err != nil {
+		return "", err
+	}
+
+	randomStr, err := generateRandomString(6)
+	if err != nil {
+		return "", err
+	}
+
+	return "ORD-" + dateStr + "-" + randomStr, nil
+}
+
+func generateRandomString(length int) (string, error) {
+	b := make([]byte, length)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	encoded := base64.URLEncoding.EncodeToString(b)
+	return encoded[:length], nil
 }
 
 func (o *orderService) saveOrderItems(

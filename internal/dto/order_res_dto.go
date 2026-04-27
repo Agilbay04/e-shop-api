@@ -3,11 +3,12 @@ package dto
 import "e-shop-api/internal/constant"
 
 type OrderResponse struct {
-	ID         	string					`json:"id"`
-	UserID     	string 					`json:"user_id"`
-	Username 	string					`json:"username"`
-	GrandTotal 	int       				`json:"grand_total"`
-	Status     	constant.OrderStatus 	`json:"status"`
+	ID          	string				`json:"id"`
+	OrderNumber 	string 				`json:"order_number"`
+	UserID      	string 				`json:"user_id"`
+	Username    	string				`json:"username"`
+	GrandTotal  	int       			`json:"grand_total"`
+	Status      	constant.OrderStatus 	`json:"status"`
 	OrderItems 	[]OrderItemResponse 	`json:"order_items"`
 }
 

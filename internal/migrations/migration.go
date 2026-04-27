@@ -12,6 +12,8 @@ func RunMigrations(db *gorm.DB) error {
 		StoreMigration(),
 		OrderMigration(),
 		AlterUserAddPictureColumnMigration(),
+		OrderSequenceMigration(),
+		AlterOrderAddOrderNumberColumnMigration(),
 	})
 
 	return m.Migrate()

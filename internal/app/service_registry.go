@@ -30,6 +30,7 @@ func NewServiceRegistry(db *gorm.DB, repo *RepositoryRegistry, client *ClientReg
 			repo.ProductRepo,
 			repo.ProductQuery,
 			repo.StoreQuery,
+			repo.OrderSequenceRepo,
 			notifService,
 		),
 		NotifService: notifService,

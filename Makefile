@@ -37,7 +37,7 @@ seed:
 
 ## add-migrate: Generate new migration
 add-migrate:
-	@if [ -z "$(name)" ]; then echo "Error: 'name' is required. Ex: make add-migirate name=CreateUser"; exit 1; fi
+	@if [ -z "$(name)" ]; then echo "Error: 'name' is required. Ex: make add-migrate name=CreateUser"; exit 1; fi
 	go run $(ADD_MIGRATE_PATH) $(name)
 
 ## tidy: Cleaning and verifying go.mod & go.sum
