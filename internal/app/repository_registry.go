@@ -26,5 +26,7 @@ func NewRepositoryRegistry(db *gorm.DB) *RepositoryRegistry {
 		ProductQuery: repository.NewProductQueryRepository(db),
 		OrderRepo:    repository.NewOrderRepository(db),
 		OrderQuery:   repository.NewOrderQueryRepository(db),
+
+		// Register new repositories here
 	}
 }

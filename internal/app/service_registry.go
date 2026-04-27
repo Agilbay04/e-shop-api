@@ -3,7 +3,6 @@ package app
 import (
 	"e-shop-api/internal/service"
 
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -13,24 +12,28 @@ type ServiceRegistry struct {
 	StoreService   service.StoreService
 	ProductService service.ProductService
 	OrderService   service.OrderService
-	notifService   service.NotificationService
+	NotifService   service.NotificationService
 }
 
-func NewServiceRegistry(repo *RepositoryRegistry, db *gorm.DB, rdb *redis.Client) *ServiceRegistry {
+func NewServiceRegistry(db *gorm.DB, repo *RepositoryRegistry, client *ClientRegistry) *ServiceRegistry {
+	notifService := service.NewNotificationService()
+
 	return &ServiceRegistry{
-		AuthService:    service.NewAuthService(db, repo.UserRepo, repo.UserQuery, service.NewNotificationService(), rdb),
-		UserService:    service.NewUserService(db, repo.UserRepo, repo.UserQuery, rdb),
+		AuthService:    service.NewAuthService(db, repo.UserRepo, repo.UserQuery, notifService, client.Redis),
+		UserService:    service.NewUserService(db, repo.UserRepo, repo.UserQuery, client.Redis),
 		StoreService:   service.NewStoreService(db, repo.StoreRepo, repo.StoreQuery, repo.OrderQuery, repo.UserQuery),
 		ProductService: service.NewProductService(db, repo.ProductRepo, repo.ProductQuery, repo.StoreQuery),
-		OrderService:   service.NewOrderService(
-			db, 
-			repo.OrderRepo, 
-			repo.OrderQuery, 
-			repo.ProductRepo, 
-			repo.ProductQuery, 
-			repo.StoreQuery, 
-			service.NewNotificationService(),
+		OrderService: service.NewOrderService(
+			db,
+			repo.OrderRepo,
+			repo.OrderQuery,
+			repo.ProductRepo,
+			repo.ProductQuery,
+			repo.StoreQuery,
+			notifService,
 		),
-		notifService: service.NewNotificationService(),
+		NotifService: notifService,
+
+		// Register new services here
 	}
 }

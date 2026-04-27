@@ -11,23 +11,26 @@ import (
 func SetupRouter(db *gorm.DB, rdb *redis.Client) *gin.Engine {
 	r := gin.New()
 
-	// Register json tag name
+	// Register JSON tag name
 	util.RegisterJSONTagName()
 
-	// Middleware
+	// Init middlewares
 	middlewareRegistry := NewMiddlewareRegistry(r)
 
-	// Register repository
-	repoRegistry := NewRepositoryRegistry(db)
-
-	// Register service
-	svcRegistry := NewServiceRegistry(repoRegistry, db, rdb)
+	// Init clients
+	clientRegistry := NewClientRegistry(rdb)
 	
-	// Register handler
-	handlerRegistry := NewHandlerRegistry(svcRegistry, db, rdb)
+	// Init repositories
+	repoRegistry := NewRepositoryRegistry(db)
+	
+	// Init services
+	svcRegistry := NewServiceRegistry(db, repoRegistry, clientRegistry)
+	
+	// Init handlers
+	handlerRegistry := NewHandlerRegistry(svcRegistry, db, clientRegistry)
 
 	// Register routes
-	RegisterRoutes(r, handlerRegistry, middlewareRegistry, rdb)
+	RegisterRoutes(r, handlerRegistry, middlewareRegistry, clientRegistry.Redis)
 
 	return r
 }

@@ -41,5 +41,7 @@ func NewMiddlewareRegistry(app *gin.Engine) *MiddlewareRegistry {
 		Seller:    middleware.RoleMiddleware(model.Seller, model.Admin),
 		Buyer:     middleware.RoleMiddleware(model.Buyer),
 		RequestID: middleware.RequestID(),
+
+		// Register new middlewares here
     }
 }
