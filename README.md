@@ -18,6 +18,7 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 
 ```bash
 e-shop-api/
+├── certs/              # SSL certificates
 ├── cmd/
 │   ├── api/            # Command main API server
 │   ├── gen/            # Command migration generator
@@ -40,11 +41,15 @@ e-shop-api/
 │   ├── services/       # Business logic services
 │   └── pkg/utils/      # Utility packages (logger, auth, pagination, etc.)
 ├── uploads/            # Static file storage
+├── .dockerignore       # Docker ignore file
+├── .air.toml           # Air configuration file (for hot reload)
 ├── .env.example        # Example environment file
 ├── docker-compose.yml  # Docker Compose file
+├── Dockerfile          # Dockerfile
 ├── go.mod              # Go module file
 ├── go.sum              # Go module checksum file
-└── Makefile            # Project Makefile
+├── Makefile            # Project Makefile
+└── README.md           # Project README
 ```
 
 ## Architecture
@@ -78,7 +83,7 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 |   - Business logic & orchestration                          |
 |   - Transaction management (Begin/Commit/Rollback)          |
 |   - Depends on repository interfaces                        |
-|   - Caches data in Redis                                    |
+|   - Caches data in Redis (several services use it)          |
 +-------------------------------------------------------------+
                             | ^
                             v |
@@ -96,11 +101,15 @@ This project implements a **Layered Architecture (3-Tier)** with principles insp
 The project uses a **Registry Pattern** to manage dependencies:
 
 ```go
-// internal/apps/
-NewRepositoryRegistry(db)    // Creates all repository instances
-NewServiceRegistry(...)      // Injects repositories into services
-NewHandlerRegistry(...)    // Injects services into handlers
-RegisterRoutes(...)       // Wires up HTTP handlers
+//# internal/apps/
+
+utils.RegisterJSONTagName() //# Register JSON tag name
+NewMiddlewareRegistry(r)    //# Creates middleware instances
+NewClientRegistry(rdb)      //# Creates client instances like Redis
+NewRepositoryRegistry(db)   //# Creates all repository instances
+NewServiceRegistry(...)     //# Injects repositories into services
+NewHandlerRegistry(...)     //# Injects services into handlers
+RegisterRoutes(...)         //# Wires up HTTP handlers
 ```
 
 ### Data Flow
@@ -329,7 +338,7 @@ The slow query tracker is implemented as a GORM plugin in `internal/pkg/querytra
 - `air` for hot reloading (`go install github.com/air-verse/air@latest`)
 - `golangci-lint` for linting (`curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.11.4`)
 - `redis` for caching (`go get github.com/redis/go-redis/v9`)
-- SSL certificates (for HTTPS, optional)
+- SSL certificates (for HTTPS, optional): Generate with OpenSSL as described in "HTTPS Configuration" section
 
 ### 1. Clone and Setup
 
@@ -351,8 +360,8 @@ Edit `.env` with your database and application settings:
 # APP
 SERVER_PORT=<http_port>
 HTTPS_PORT=<https_port>
-SSL_CERT_PATH=<cert>.pem
-SSL_KEY_PATH=<cert>-key.pem
+SSL_CERT_PATH=certs/<cert>.pem
+SSL_KEY_PATH=certs/<cert>-key.pem
 APP_ENV=development
 USE_HTTPS=true
 
@@ -413,12 +422,162 @@ DOCS_API_PATH=docs/api
 DOCS_ERD_PATH=docs/erd
 ```
 
-### 3. Start Database
+### HTTPS Configuration (Optional)
 
-Using Docker Compose:
+To enable HTTPS for local development, you need SSL certificates. This project supports self-signed certificates for testing.
+
+#### Generate Self-Signed Certificates
+
+Create a `certs` directory and generate certificates using OpenSSL:
 
 ```bash
-docker-compose up -d
+mkdir -p certs
+openssl req -x509 -newkey rsa:4096 \
+  -keyout certs/localhost-key.pem \
+  -out certs/localhost.pem \
+  -days 365 -nodes \
+  -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+```
+
+This creates:
+
+- `certs/localhost.pem` - Public SSL certificate
+- `certs/localhost-key.pem` - Private key (never commit this to version control)
+
+#### Configure Environment
+
+Update your `.env` file with the certificate paths:
+
+```env
+USE_HTTPS=true
+SSL_CERT_PATH=/app/certs/localhost.pem
+SSL_KEY_PATH=/app/certs/localhost-key.pem
+```
+
+**Note**: When running via Docker Compose, the paths should be `/app/certs/...` (container paths). The `docker-compose.yml` mounts `./certs` to `/app/certs`.
+
+#### Docker Compose Setup
+
+The `docker-compose.yml` already includes volume mounting for certificates:
+
+```yaml
+volumes:
+  - ./certs:/app/certs
+```
+
+This makes the host's `certs/` directory accessible inside the container at `/app/certs`.
+
+#### Verify HTTPS
+
+Test the HTTPS endpoint (ignore self-signed cert warnings with `-k`):
+
+```bash
+curl -k https://localhost:8001/health
+```
+
+Expected response:
+
+```json
+{"status":"healthy","service":"e-shop-api","version":"1.0.0"}
+```
+
+#### Browser Warning
+
+When accessing via browser, you'll see a security warning about self-signed certificates. This is normal for development. Click "Advanced" → "Proceed to localhost (unsafe)" to continue.
+
+> **Security Note:** The `certs/` directory is automatically added to `.gitignore` to prevent committing private keys to version control. Never commit SSL private keys to public repositories.
+
+### 2.5 Run with Docker
+
+This project includes Docker and Docker Compose configuration to run the full stack (API, PostgreSQL, Redis) with a single command.
+
+#### Prerequisites & Installation
+
+- Docker installed: <https://docs.docker.com/get-docker/>
+- Docker Compose installed: <https://docs.docker.com/compose/install/>
+
+#### Steps
+
+1. **Clone and setup environment** (if not already done):
+
+   ```bash
+   git clone <your-repo-url>
+   cd e-shop-api
+   cp .env.example .env
+   ```
+
+2. **Optional: Configure HTTPS** (for secure connections):
+   Follow the [HTTPS Configuration](#https-configuration-optional) section to generate self-signed certificates if you want to use HTTPS.
+
+3. **Build and start all services**:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+   This command:
+   - Builds the API Docker image using the optimized multi-stage Dockerfile
+   - Starts all services (API, PostgreSQL, Redis) defined in `docker-compose.yml`
+   - Waits for PostgreSQL to be healthy before starting the API (via `depends_on` healthcheck)
+   - Mounts required volumes (`./uploads` for file storage, `./certs` for HTTPS if enabled)
+
+4. **Verify services are running**:
+
+   ```bash
+   docker compose ps
+   ```
+
+   All three services (`e-shop-api`, `go-psql`, `go-redis`) should show `Up` status.
+
+5. **Check API logs** (optional):
+
+   ```bash
+   docker compose logs -f api
+   ```
+
+6. **Test the API**:
+
+   - If using HTTP (`USE_HTTPS=false` in `.env`):
+
+     ```bash
+     curl http://localhost:8001/health
+     ```
+
+   - If using HTTPS (`USE_HTTPS=true` in `.env`):
+
+     ```bash
+     curl -k https://localhost:8001/health
+     ```
+
+   Expected response: `{"status":"healthy","service":"e-shop-api","version":"1.0.0"}`
+
+7. **Run database migrations** (if needed):
+   Migrations are not run automatically. Execute them inside the API container:
+
+   ```bash
+   docker compose exec api /bin/sh -c "cd /app && make migrate"
+   ```
+
+8. **Stop all services**:
+
+   ```bash
+   docker compose down
+   ```
+
+   Add `-v` to remove volumes and delete persisted data: `docker compose down -v`
+
+#### Notes
+
+- The `docker-compose.yml` automatically overrides `DB_HOST=db`, `DB_PORT=5432`, `REDIS_HOST=redis`, and `REDIS_PORT=6379` for proper Docker networking.
+- For local development without Docker, follow the "Run the Server" section instead.
+
+### 3. Start Database (Docker)
+
+If you are not using the full Docker stack (section 2.5), you can start only the PostgreSQL database with:
+
+```bash
+docker compose up -d db
 ```
 
 Or use an existing PostgreSQL instance.
@@ -445,6 +604,8 @@ make seed
 
 ### 6. Run the Server
 
+**For non-Docker users:**
+
 ```bash
 # Run the server
 make run
@@ -455,6 +616,8 @@ make dev
 
 The server will start on `http://localhost:8001` if `USE_HTTPS` is set to `true` in `.env` server will start on `https://localhost:8001` (or the port specified in `.env`).
 > **Note:** Before using command `make dev` you need to install `air` with `go install github.com/air-verse/air@latest`, then run command `air init`, and update `.air.toml` file with your configuration.
+
+**For Docker users:** The API is automatically started via the Docker Compose stack (see section 2.5).
 
 ### 7. Linting (Run golangci-lint)
 

@@ -14,15 +14,17 @@ import (
 )
 
 func main() {
-	// Load file .env
+	// Load file .env first (ensures APP_ENV is available for logger config)
 	err := godotenv.Load()
+
+	// Init logger before any logging calls
+	logger.InitLogger()
+	defer logger.L.Sync()
+
+	// Log .env warning now that logger is initialized
 	if err != nil {
 		logger.L.Info("Warning: .env file not found, using system environment variables")
 	}
-
-	// Init logger
-	logger.InitLogger()
-	defer logger.L.Sync()
 
 	logger.L.Info("Starting server...")
 
