@@ -1,9 +1,9 @@
 package main
 
 import (
-	"e-shop-api/internal/configs"
-	"e-shop-api/internal/migrations"
-	"e-shop-api/internal/pkg/logger"
+	"bagogo-boiler/internal/configs"
+	"bagogo-boiler/internal/migrations"
+	"bagogo-boiler/internal/pkg/logger"
 
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"

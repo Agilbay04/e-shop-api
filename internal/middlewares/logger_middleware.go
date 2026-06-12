@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"e-shop-api/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"

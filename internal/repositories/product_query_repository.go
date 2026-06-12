@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"e-shop-api/internal/dtos"
-	"e-shop-api/internal/models"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/dtos"
+	"bagogo-boiler/internal/models"
+	"bagogo-boiler/internal/pkg/utils"
 	"time"
 
 	"gorm.io/gorm"

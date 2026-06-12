@@ -1,7 +1,7 @@
 package models
 
 import (
-	"e-shop-api/internal/constants"
+	"bagogo-boiler/internal/constants"
 
 	"github.com/google/uuid"
 )

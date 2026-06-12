@@ -1,4 +1,4 @@
-module e-shop-api
+module bagogo-boiler
 
 go 1.25.8
 

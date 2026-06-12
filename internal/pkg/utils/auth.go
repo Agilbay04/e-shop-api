@@ -2,7 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
-	"e-shop-api/internal/dtos"
+	"bagogo-boiler/internal/dtos"
 	"math/big"
 
 	"github.com/gin-gonic/gin"

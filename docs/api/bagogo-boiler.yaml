@@ -1,0 +1,862 @@
+openapi: 3.0.0
+info:
+  title: bagogo-boiler
+  version: 1.0.0
+paths:
+  /api/v1/auth/forgot-password:
+    post:
+      summary: Forgot Password
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_auth_forgot_password_yml
+      description: ''
+      tags:
+        - auth
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/forgot_password'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/auth/login:
+    post:
+      summary: Login
+      operationId: home_agile_documents_bruno_e-shop-api_training_golang_auth_login_yml
+      description: ''
+      tags:
+        - auth
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/login'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/auth/refresh-token:
+    post:
+      summary: Refresh Token
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_auth_refresh_token_yml
+      description: ''
+      tags:
+        - auth
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/refresh_token'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/auth/register:
+    post:
+      summary: Register
+      operationId: home_agile_documents_bruno_e-shop-api_training_golang_auth_register_yml
+      description: ''
+      tags:
+        - auth
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/register'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/auth/reset-password:
+    put:
+      summary: Reset Password
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_auth_reset_password_yml
+      description: ''
+      tags:
+        - auth
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/reset_password'
+      servers:
+        - url: https://localhost:8001
+  /health:
+    get:
+      summary: Health (Check app health)
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_health_health_check_app_health_yml
+      description: ''
+      tags:
+        - health
+      responses:
+        '200':
+          description: ''
+      servers:
+        - url: https://localhost:8001
+  /ready:
+    get:
+      summary: Ready (Check all services are ready)
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_health_ready_check_all_services_are_ready_yml
+      description: ''
+      tags:
+        - health
+      responses:
+        '200':
+          description: ''
+      servers:
+        - url: https://localhost:8001
+  /api/v1/products/activate:
+    patch:
+      summary: Product - Activate
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_product_product_-_activate_yml
+      description: ''
+      tags:
+        - product
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/product_-_activate'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/products:
+    post:
+      summary: Product - Create
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_product_product_-_create_yml
+      description: ''
+      tags:
+        - product
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/product_-_create'
+      servers:
+        - url: https://localhost:8001
+    get:
+      summary: Product - Get All/By ID
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_product_product_-_get_all-by_id_yml
+      description: ''
+      tags:
+        - product
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: page
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '1'
+        - name: limit
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '10'
+        - name: sort_by
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: created_at
+        - name: order_by
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: desc
+        - name: search
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: store_id
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+          example: 59e3e777-7050-4b69-b7ee-da488d54bd61
+        - name: id
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+          example: 703650f9-5d99-4f75-9d27-40914fd84150
+        - name: min_price
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: max_price
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+      servers:
+        - url: https://localhost:8001
+  /api/v1/products/{id}:
+    patch:
+      summary: Product - Delete
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_product_product_-_delete_yml
+      description: ''
+      tags:
+        - product
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: a5b8f242-44c6-4c93-8127-7ed78327861e
+      servers:
+        - url: https://localhost:8001
+    put:
+      summary: Product - Update
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_product_product_-_update_yml
+      description: ''
+      tags:
+        - product
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: a5b8f242-44c6-4c93-8127-7ed78327861e
+      requestBody:
+        $ref: '#/components/requestBodies/product_-_update'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/orders/{id}/cancel:
+    patch:
+      summary: Order - Cancel
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_order_order_-_cancel_yml
+      description: ''
+      tags:
+        - order
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: 37833da0-bba7-418e-b9d6-c93a24793a90
+      servers:
+        - url: https://localhost:8001
+  /api/v1/orders/{id}/confirm:
+    patch:
+      summary: Order - Confirm
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_order_order_-_confirm_yml
+      description: ''
+      tags:
+        - order
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: b4873f68-1402-4d4d-b16f-68b1f76907b6
+      servers:
+        - url: https://localhost:8001
+  /api/v1/orders:
+    post:
+      summary: Order - Create
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_order_order_-_create_yml
+      description: ''
+      tags:
+        - order
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/order_-_create'
+      servers:
+        - url: https://localhost:8001
+    get:
+      summary: Order - Get All/By ID copy
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_order_order_-_get_all-by_id_copy_yml
+      description: ''
+      tags:
+        - order
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: page
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '1'
+        - name: limit
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '10'
+        - name: sort_by
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: created_at
+        - name: order_by
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: desc
+        - name: search
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: store_id
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+          example: 59e3e777-7050-4b69-b7ee-da488d54bd61
+        - name: id
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+          example: 703650f9-5d99-4f75-9d27-40914fd84150
+        - name: min_price
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: max_price
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+      servers:
+        - url: https://localhost:8001
+  /api/v1/orders/{id}:
+    put:
+      summary: Order - Update
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_order_order_-_update_yml
+      description: ''
+      tags:
+        - order
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: b4873f68-1402-4d4d-b16f-68b1f76907b6
+      requestBody:
+        $ref: '#/components/requestBodies/order_-_update'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/stores/activate:
+    patch:
+      summary: Store - Activate
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_store_store_-_activate_yml
+      description: ''
+      tags:
+        - store
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/store_-_activate'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/stores:
+    post:
+      summary: Store - Create
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_store_store_-_create_yml
+      description: ''
+      tags:
+        - store
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/store_-_create'
+      servers:
+        - url: https://localhost:8001
+    get:
+      summary: Store - Get All/By ID
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_store_store_-_get_all-by_id_yml
+      description: ''
+      tags:
+        - store
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: page
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '1'
+        - name: limit
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '10'
+        - name: sort_by
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: created_at
+        - name: order_by
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: desc
+        - name: search
+          in: query
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+          example: 703650f9-5d99-4f75-9d27-40914fd84150
+        - name: min_price
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+        - name: max_price
+          in: query
+          description: ''
+          required: false
+          schema:
+            type: string
+      servers:
+        - url: https://localhost:8001
+  /api/v1/stores/{id}:
+    patch:
+      summary: Store - Delete
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_store_store_-_delete_yml
+      description: ''
+      tags:
+        - store
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: 59e3e777-7050-4b69-b7ee-da488d54bd61
+      servers:
+        - url: https://localhost:8001
+    put:
+      summary: Store - Update
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_store_store_-_update_yml
+      description: ''
+      tags:
+        - store
+      responses:
+        '200':
+          description: ''
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+          example: 59e3e777-7050-4b69-b7ee-da488d54bd61
+      requestBody:
+        $ref: '#/components/requestBodies/store_-_update'
+      servers:
+        - url: https://localhost:8001
+  /api/v1/users/profile:
+    get:
+      summary: Profile
+      operationId: home_agile_documents_bruno_e-shop-api_training_golang_user_profile_yml
+      description: ''
+      tags:
+        - user
+      responses:
+        '200':
+          description: ''
+      servers:
+        - url: https://localhost:8001
+  /api/v1/users/upload-picture:
+    post:
+      summary: Upload Picture
+      operationId: >-
+        home_agile_documents_bruno_e-shop-api_training_golang_user_upload_picture_yml
+      description: ''
+      tags:
+        - user
+      responses:
+        '200':
+          description: ''
+      requestBody:
+        $ref: '#/components/requestBodies/upload_picture'
+      servers:
+        - url: https://localhost:8001
+servers: []
+components:
+  schemas:
+    forgot_password:
+      type: object
+      properties:
+        email:
+          type: string
+      example:
+        email: pragmanta@gmail.com
+    login:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      example:
+        email: pragmanta@gmail.com
+        password: rahasia123
+    refresh_token:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+      example:
+        refresh_token: >-
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzU3ODdlNDItZmMwZC00MDU4LWI3MDItNDc3NjQ0NjQwYzJkIiwiZXhwIjoxNzc3ODY2OTQ4LCJpYXQiOjE3NzcyNjIxNDh9.-rkIWzZ8VPHnbvA8LMTYPhwm-gR3uzEnZtbe1XAn9uc
+    register:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+      example:
+        username: pragmanta
+        email: pragmanta@gmail.com
+        password: rahasia123
+        role: buyer
+    reset_password:
+      type: object
+      properties:
+        token:
+          type: string
+        new_password:
+          type: string
+        confirm_password:
+          type: string
+      example:
+        token: 2664f00f-c743-41cf-a7fd-c4924574e10f
+        new_password: rahasia123
+        confirm_password: rahasia123
+    product_-_activate:
+      type: object
+      properties:
+        id:
+          type: string
+        is_active:
+          type: boolean
+      example:
+        id: a5b8f242-44c6-4c93-8127-7ed78327861e
+        is_active: true
+    product_-_create:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        stock:
+          type: integer
+        unit:
+          type: string
+      example:
+        name: Cat
+        description: Cat kualitas bagus
+        price: 80000
+        stock: 500
+        unit: bucket
+    product_-_update:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        stock:
+          type: integer
+        unit:
+          type: string
+      example:
+        name: Genteng Merah
+        description: Genteng kualitas bagus
+        price: 11500
+        stock: 10000
+        unit: item
+    order_-_create:
+      type: object
+      properties:
+        is_checkout:
+          type: boolean
+        order_items:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: string
+              quantity:
+                type: integer
+      example:
+        is_checkout: true
+        order_items:
+          - product_id: a5b8f242-44c6-4c93-8127-7ed78327861e
+            quantity: 100
+          - product_id: 703650f9-5d99-4f75-9d27-40914fd84150
+            quantity: 100
+    order_-_update:
+      type: object
+      properties:
+        is_checkout:
+          type: boolean
+        order_items:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: string
+              quantity:
+                type: integer
+      example:
+        is_checkout: true
+        order_items:
+          - product_id: a5b8f242-44c6-4c93-8127-7ed78327861e
+            quantity: 50
+          - product_id: 703650f9-5d99-4f75-9d27-40914fd84150
+            quantity: 25
+    store_-_activate:
+      type: object
+      properties:
+        id:
+          type: string
+        is_active:
+          type: boolean
+      example:
+        id: 59e3e777-7050-4b69-b7ee-da488d54bd61
+        is_active: true
+    store_-_create:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      example:
+        name: Material Store Oke Mantap
+        description: Toko yang menyediakan bahan bangunan
+    store_-_update:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        is_active:
+          type: boolean
+      example:
+        name: Toko Rahmat Bangunan
+        description: Toko yang menyediakan bahan bangunan
+        is_active: true
+    upload_picture:
+      type: object
+      properties:
+        picture:
+          type: array
+          items:
+            type: string
+  requestBodies:
+    forgot_password:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/forgot_password'
+      description: ''
+      required: true
+    login:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/login'
+      description: ''
+      required: true
+    refresh_token:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/refresh_token'
+      description: ''
+      required: true
+    register:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/register'
+      description: ''
+      required: true
+    reset_password:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/reset_password'
+      description: ''
+      required: true
+    product_-_activate:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/product_-_activate'
+      description: ''
+      required: true
+    product_-_create:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/product_-_create'
+      description: ''
+      required: true
+    product_-_update:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/product_-_update'
+      description: ''
+      required: true
+    order_-_create:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/order_-_create'
+      description: ''
+      required: true
+    order_-_update:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/order_-_update'
+      description: ''
+      required: true
+    store_-_activate:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/store_-_activate'
+      description: ''
+      required: true
+    store_-_create:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/store_-_create'
+      description: ''
+      required: true
+    store_-_update:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/store_-_update'
+      description: ''
+      required: true
+    upload_picture:
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/upload_picture'
+      description: ''
+      required: true
+  securitySchemes: {}

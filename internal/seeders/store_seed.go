@@ -1,7 +1,7 @@
 package seeders
 
 import (
-	"e-shop-api/internal/models"
+	"bagogo-boiler/internal/models"
 	"errors"
 
 	"gorm.io/gorm"

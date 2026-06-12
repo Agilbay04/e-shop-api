@@ -1,7 +1,7 @@
 package apps
 
 import (
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"

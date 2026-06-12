@@ -1,7 +1,7 @@
 package apps
 
 import (
-	"e-shop-api/internal/repositories"
+	"bagogo-boiler/internal/repositories"
 	"gorm.io/gorm"
 )
 

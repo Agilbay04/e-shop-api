@@ -1,6 +1,6 @@
 package dtos
 
-import "e-shop-api/internal/constants"
+import "bagogo-boiler/internal/constants"
 
 type CurrentUser struct {
     ID       string              `json:"id"`

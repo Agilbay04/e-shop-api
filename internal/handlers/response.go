@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"e-shop-api/internal/dtos"
+	"bagogo-boiler/internal/dtos"
 	"math"
 	"net/http"
 

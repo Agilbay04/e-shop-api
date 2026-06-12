@@ -1,8 +1,8 @@
 package services
 
 import (
-	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/utils"
 
 	"github.com/sony/gobreaker"
 	"go.uber.org/zap"

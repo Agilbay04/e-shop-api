@@ -1,7 +1,7 @@
 package main
 
 import (
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/pkg/utils"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +13,7 @@ import (
 const migrationTemplate = `package migrations
 
 import (
-	"e-shop-api/internal/models"
+	"bagogo-boiler/internal/models"
 	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
 )

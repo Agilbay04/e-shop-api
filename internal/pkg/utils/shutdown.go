@@ -2,7 +2,7 @@ package utils
 
 import (
 	"context"
-	"e-shop-api/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/logger"
 	"net/http"
 	"os"
 	"os/signal"

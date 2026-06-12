@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"e-shop-api/internal/models"
+	"bagogo-boiler/internal/models"
 	"time"
 
 	"github.com/go-gormigrate/gormigrate/v2"

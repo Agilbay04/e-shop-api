@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"e-shop-api/internal/dtos"
-	"e-shop-api/internal/handlers"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/dtos"
+	"bagogo-boiler/internal/handlers"
+	"bagogo-boiler/internal/pkg/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

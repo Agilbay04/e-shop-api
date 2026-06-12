@@ -1,9 +1,9 @@
 package querytracker
 
 import (
-	"e-shop-api/internal/constants"
-	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/constants"
+	"bagogo-boiler/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/utils"
 	"fmt"
 	"regexp"
 	"strings"

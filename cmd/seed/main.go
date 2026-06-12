@@ -1,9 +1,9 @@
 package main
 
 import (
-	"e-shop-api/internal/configs"
-	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/seeders"
+	"bagogo-boiler/internal/configs"
+	"bagogo-boiler/internal/pkg/logger"
+	"bagogo-boiler/internal/seeders"
 	"os"
 
 	"github.com/joho/godotenv"

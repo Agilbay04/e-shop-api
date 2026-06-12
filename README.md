@@ -1,6 +1,6 @@
-# E-Shop API
+# bagogo-boiler
 
-A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQL.
+Simple boilerplate for a RESTful API, built with Go using the Gin framework and PostgreSQL.
 
 ## Tech Stack
 
@@ -17,7 +17,7 @@ A RESTful API for e-commerce built with Go using the Gin framework and PostgreSQ
 ## Project Structure
 
 ```bash
-e-shop-api/
+bagogo-boiler/
 ├── certs/              # SSL certificates
 ├── cmd/
 │   ├── api/            # Command main API server
@@ -193,7 +193,7 @@ The logger exposes two aliases: `logger.Log` and `logger.L` (shorter syntax).
 
 ```go
 import (
-    "e-shop-api/internal/pkg/logger"
+    "bagogo-boiler/internal/pkg/logger"
     "go.uber.org/zap"
 )
 
@@ -231,7 +231,7 @@ This project uses **gobreaker** (from sony/gobreaker) for circuit breaker patter
 
 ```go
 import (
-    "e-shop-api/internal/pkg/utils"
+    "bagogo-boiler/internal/pkg/utils"
 )
 
 // Create a circuit breaker
@@ -344,7 +344,7 @@ The slow query tracker is implemented as a GORM plugin in `internal/pkg/querytra
 
 ```bash
 # Clone the repository
-cd e-shop-api
+cd bagogo-boiler
 
 # Copy environment file
 cp .env.example .env
@@ -388,7 +388,7 @@ JWT_REFRESH_TTL=604800s
 # SMTP EMAIL
 SMTP_HOST=localhost
 SMTP_PORT=1025
-SMTP_SENDER_NAME="E-Shop Admin"
+SMTP_SENDER_NAME="Bagoo Admin"
 SMTP_AUTH_EMAIL=<auth_email>
 SMTP_AUTH_PASSWORD=<auth_password>
 
@@ -413,7 +413,7 @@ RETRY_ATTEMPTS=3
 RETRY_DELAY=2s
 
 # MAKEFILE
-BINARY_NAME=e-shop-api
+BINARY_NAME=bagogo-boiler
 MAIN_PATH=cmd/api/main.go
 MIGRATE_PATH=cmd/migrate/main.go
 ADD_MIGRATE_PATH=cmd/gen/main.go
@@ -479,7 +479,7 @@ curl -k https://localhost:8001/health
 Expected response:
 
 ```json
-{"status":"healthy","service":"e-shop-api","version":"1.0.0"}
+{"status":"healthy","service":"bagogo-boiler","version":"1.0.0"}
 ```
 
 #### Browser Warning
@@ -503,7 +503,7 @@ This project includes Docker and Docker Compose configuration to run the full st
 
    ```bash
    git clone <your-repo-url>
-   cd e-shop-api
+   cd bagogo-boiler
    cp .env.example .env
    ```
 
@@ -528,7 +528,7 @@ This project includes Docker and Docker Compose configuration to run the full st
    docker compose ps
    ```
 
-   All three services (`e-shop-api`, `go-psql`, `go-redis`) should show `Up` status.
+   All three services (`bagogo-api`, `bagogo-db`, `bagogo-redis`) should show `Up` status.
 
 5. **Check API logs** (optional):
 
@@ -550,7 +550,7 @@ This project includes Docker and Docker Compose configuration to run the full st
      curl -k https://localhost:8001/health
      ```
 
-   Expected response: `{"status":"healthy","service":"e-shop-api","version":"1.0.0"}`
+   Expected response: `{"status":"healthy","service":"bagogo-boiler","version":"1.0.0"}`
 
 7. **Run database migrations** (if needed):
    Migrations are not run automatically. Execute them inside the API container:
@@ -815,27 +815,27 @@ Content-Type: application/json
 
 ### API Documentation
 
-The API documentation is available as an interactive HTML collection in `doc/api/e-shop-api-documentation.html`.
+The API documentation is available as an interactive HTML collection in `doc/api/bagogo-boiler-documentation.html`.
 
 **How to view:**
 
 1. Install the **Live Server** extension in VS Code (by Ritwick Dey)
-2. Right-click `doc/api/e-shop-api-documentation.html`
+2. Right-click `doc/api/bagogo-boiler-documentation.html`
 3. Select "Open with Live Server"
 
 The documentation will open in your default browser, allowing you to test all API endpoints with the configured environment (base URL: `http://localhost:8001`).
 
 ### Database Schema (DBML)
 
-The database schema is defined in `doc/erd/e_shop_db.dbml` using DBML (Database Markup Language).
+The database schema is defined in `doc/erd/bagogo_db.dbml` using DBML (Database Markup Language).
 
 **How to view:**
 
 1. Install a DBML viewer extension in VS Code (e.g., **DBML** by mohsen1)
-2. Open `doc/erd/e_shop_db.dbml` to see an interactive ERD diagram
-3. Alternatively, view the pre-generated ERD image at `doc/erd/e_shop_db_erd.png`
+2. Open `doc/erd/bagogo_db.dbml` to see an interactive ERD diagram
+3. Alternatively, view the pre-generated ERD image at `doc/erd/bagogo_db_erd.png`
 
-The SQL schema export is also available at `doc/erd/e_shop_db.sql`.
+The SQL schema export is also available at `doc/erd/bagogo_db.sql`.
 
 ## License
 

@@ -2,8 +2,8 @@ package configs
 
 import (
 	"context"
-	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/utils"
 	"fmt"
 	"os"
 

@@ -1,7 +1,7 @@
 package models
 
 import (
-	"e-shop-api/internal/constants"
+	"bagogo-boiler/internal/constants"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -21,13 +21,25 @@ func (User) TableName() string {
 	return "users"
 }
 
-func (u *User) BeforeSave(tx *gorm.DB) (err error) {
-	if tx.Statement.Changed("Password") && u.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		u.Password = string(hashedPassword)
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	if u.Password != "" {
+		return u.hashPassword()
 	}
+	return nil
+}
+
+func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
+	if tx.Statement.Changed("Password") && u.Password != "" {
+		return u.hashPassword()
+	}
+	return nil
+}
+
+func (u *User) hashPassword() error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashedPassword)
 	return nil
 }

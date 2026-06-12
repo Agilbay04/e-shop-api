@@ -1,11 +1,11 @@
 package services
 
 import (
-	"e-shop-api/internal/constants"
-	"e-shop-api/internal/dtos"
-	"e-shop-api/internal/models"
-	"e-shop-api/internal/pkg/utils"
-	"e-shop-api/internal/repositories"
+	"bagogo-boiler/internal/constants"
+	"bagogo-boiler/internal/dtos"
+	"bagogo-boiler/internal/models"
+	"bagogo-boiler/internal/pkg/utils"
+	"bagogo-boiler/internal/repositories"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -225,9 +225,8 @@ func (s *authService) ResetPassword(req dtos.ResetPasswordRequest) error {
 		return err
 	}
 
-	// Hash new password
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
-	u.Password = string(hashedPassword)
+	// Set new password (akan di-hash otomatis oleh BeforeUpdate hook)
+	u.Password = req.NewPassword
 
 	// Update password
 	if err := s.userRepo.Update(s.db, u); err != nil {

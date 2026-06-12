@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"e-shop-api/internal/constants"
-	"e-shop-api/internal/dtos"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/constants"
+	"bagogo-boiler/internal/dtos"
+	"bagogo-boiler/internal/pkg/utils"
 	"slices"
 	"strings"
 

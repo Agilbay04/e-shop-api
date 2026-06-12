@@ -1,6 +1,6 @@
 package dtos
 
-import "e-shop-api/internal/constants"
+import "bagogo-boiler/internal/constants"
 
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"e-shop-api/internal/apps"
-	"e-shop-api/internal/configs"
-	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/apps"
+	"bagogo-boiler/internal/configs"
+	"bagogo-boiler/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/utils"
 	"errors"
 	"net/http"
 	"os"
@@ -54,12 +54,12 @@ func main() {
 		key := os.Getenv("SSL_KEY_PATH")
 
 		if useHTTPS && cert != "" && key != "" {
-			logger.L.Info("Server e-shop-api starting on https://localhost:"+port, zap.String("port", port))
+			logger.L.Info("Server bagogo-boiler starting on https://localhost:"+port, zap.String("port", port))
 			if err := srv.ListenAndServeTLS(cert, key); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				logger.L.Fatal("HTTPS Listen error", zap.Error(err))
 			}
 		} else {
-			logger.L.Info("Server e-shop-api starting on http://localhost:"+port, zap.String("port", port))
+			logger.L.Info("Server bagogo-boiler starting on http://localhost:"+port, zap.String("port", port))
 			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				logger.L.Fatal("HTTP Listen error", zap.Error(err))
 			}

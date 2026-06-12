@@ -1,7 +1,7 @@
 package seeders
 
 import (
-	"e-shop-api/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/logger"
 	"gorm.io/gorm"
 
 	"go.uber.org/zap"

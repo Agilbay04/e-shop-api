@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"e-shop-api/internal/dtos"
+	"bagogo-boiler/internal/dtos"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +24,7 @@ func NewHealthHandler(db *gorm.DB, rdb *redis.Client) *HealthHandler {
 func (h *HealthHandler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, dtos.HealthResponse{
 		Status:   "healthy",
-		Service:  "e-shop-api",
+		Service:  "bagogo-boiler",
 		Version:  "1.0.0",
 		Details:  nil,
 	})

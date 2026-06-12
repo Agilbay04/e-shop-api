@@ -1,60 +1,129 @@
-version: '3.8'
 services:
-  api:
-    build: .
-    container_name: e-shop-api
-    ports:
-      - "8001:8001"
-    env_file:
-      - .env
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    volumes:
-      - ./uploads:/app/uploads
-      - ./certs:/app/certs
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    networks:
-      - e-shop-network
-
   db:
+    restart: unless-stopped
     image: postgres:15-alpine
-    container_name: go-psql
+    container_name: bagogo-db
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "${DB_PORT:-5433}:5432"
+      - "${DB_PORT}:5432"
     volumes:
-      - e_shop_data:/var/lib/postgresql/data
+      - bagogo_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - e-shop-network
+      - bagogo-network
 
   redis:
+    restart: unless-stopped
     image: redis:7-alpine
-    container_name: go-redis
+    container_name: bagogo-redis
     ports:
-      - "${REDIS_PORT:-6380}:6379"
+      - "${REDIS_PORT}:6379"
     volumes:
-      - go_redis_data:/data
+      - bagogo_redis_data:/data
     networks:
-      - e-shop-network
+      - bagogo-network
+
+  migrate:
+    restart: "no"
+    build: .
+    container_name: bagogo-migrate
+    entrypoint: ["./bagogo-migrate"]
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bagogo-network
+
+  api:
+    restart: unless-stopped
+    build: .
+    container_name: bagogo-api
+    ports:
+      - "${SERVER_PORT}:8001"
+    environment:
+      # App configuration
+      SERVER_PORT: ${SERVER_PORT}
+      SSL_CERT_PATH: ${SSL_CERT_PATH}
+      SSL_KEY_PATH: ${SSL_KEY_PATH}
+      APP_ENV: ${APP_ENV}
+      USE_HTTPS: ${USE_HTTPS}
+
+      # DB configuration
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_MAX_IDLE_CONNS: ${DB_MAX_IDLE_CONNS}
+      DB_MAX_OPEN_CONNS: ${DB_MAX_OPEN_CONNS}
+      DB_CONN_MAX_LIFETIME: ${DB_CONN_MAX_LIFETIME}
+      DB_CONN_MAX_IDLETIME: ${DB_CONN_MAX_IDLETIME}
+      
+      # Redis configuration
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_CACHE_TTL: ${REDIS_CACHE_TTL}
+
+      # Query Tracker configuration
+      SLOW_QUERY_THRESHOLD: ${SLOW_QUERY_THRESHOLD}
+
+      # JWT configuration
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_TTL: ${JWT_TTL}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL}
+
+      # SMTP configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
+      SMTP_AUTH_EMAIL: ${SMTP_AUTH_EMAIL}
+      SMTP_AUTH_PASSWORD: ${SMTP_AUTH_PASSWORD}
+
+      # PROXIES configuration
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+
+      # CORS configuration
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+
+      # Circuit Breaker configuration
+      CB_MAX_REQUESTS: ${CB_MAX_REQUESTS}
+      CB_INTERVAL: ${CB_INTERVAL}
+      CB_TIMEOUT: ${CB_TIMEOUT}
+      CB_THRESHOLD: ${CB_THRESHOLD}
+
+      # Retry configuration
+      RETRY_ATTEMPTS: ${RETRY_ATTEMPTS}
+      RETRY_DELAY: ${RETRY_DELAY}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./certs:/app/certs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - bagogo-network
 
 volumes:
-  e_shop_data:
-  go_redis_data:
+  bagogo_db_data:
+  bagogo_redis_data:
 
 networks:
-  e-shop-network:
+  bagogo-network:

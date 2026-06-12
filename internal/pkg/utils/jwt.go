@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"e-shop-api/internal/constants"
+	"bagogo-boiler/internal/constants"
 	"errors"
 	"os"
 	"time"

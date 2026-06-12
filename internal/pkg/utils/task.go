@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"e-shop-api/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/logger"
 
 	"go.uber.org/zap"
 )

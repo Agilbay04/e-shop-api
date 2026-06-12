@@ -1,9 +1,9 @@
 package services
 
 import (
-	"e-shop-api/internal/dtos"
-	"e-shop-api/internal/pkg/utils"
-	"e-shop-api/internal/repositories"
+	"bagogo-boiler/internal/dtos"
+	"bagogo-boiler/internal/pkg/utils"
+	"bagogo-boiler/internal/repositories"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"

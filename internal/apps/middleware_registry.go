@@ -1,8 +1,8 @@
 package apps
 
 import (
-	"e-shop-api/internal/constants"
-	"e-shop-api/internal/middlewares"
+	"bagogo-boiler/internal/constants"
+	"bagogo-boiler/internal/middlewares"
 	"os"
 	"strings"
 

@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"e-shop-api/internal/models"
+	"bagogo-boiler/internal/models"
 
 	"gorm.io/gorm"
 )

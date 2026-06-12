@@ -2,25 +2,6 @@ Table "migrations" {
   "id" "character varying(255)" [pk, not null]
 }
 
-Table "order_items" {
-  "id" uuid [pk, not null, default: `gen_random_uuid()`]
-  "created_at" timestamp
-  "created_by" uuid
-  "updated_at" timestamp
-  "updated_by" uuid
-  "deleted_at" timestamp
-  "order_id" uuid
-  "store_id" uuid
-  "product_id" uuid
-  "quantity" bigint [not null]
-  "price" bigint [not null]
-  "sub_total" bigint [not null]
-
-  Indexes {
-    deleted_at [type: btree, name: "idx_order_items_deleted_at"]
-  }
-}
-
 Table "order_sequences" {
   "id" uuid [pk, not null, default: `gen_random_uuid()`]
   "date" date [not null]
@@ -43,12 +24,16 @@ Table "orders" {
   "updated_by" uuid
   "deleted_at" timestamp
   "user_id" uuid
-  "status" "character varying(20)" [default: `'draft'::charactervarying`]
   "grand_total" bigint [not null]
-  "order_number" "character varying(50)" [unique]
+  "status" "character varying(20)" [default: `'draft'::charactervarying`]
+  "order_number" "character varying(50)"
 
   Indexes {
     deleted_at [type: btree, name: "idx_orders_deleted_at"]
+    grand_total [type: btree, name: "idx_orders_grand_total"]
+    order_number [type: btree, unique, name: "idx_orders_order_number"]
+    status [type: btree, name: "idx_orders_status"]
+    user_id [type: btree, name: "idx_orders_user_id"]
   }
 }
 
@@ -60,17 +45,21 @@ Table "products" {
   "updated_by" uuid
   "deleted_at" timestamp
   "name" text [not null]
+  "description" text
   "slug" text
   "price" bigint [not null]
   "stock" bigint [default: 0]
-  "store_id" uuid
-  "description" text
   "unit" "character varying(10)"
   "is_active" boolean [default: true]
+  "store_id" uuid
 
   Indexes {
     deleted_at [type: btree, name: "idx_products_deleted_at"]
+    is_active [type: btree, name: "idx_products_is_active"]
+    price [type: btree, name: "idx_products_price"]
     slug [type: btree, unique, name: "idx_products_slug"]
+    stock [type: btree, name: "idx_products_stock"]
+    store_id [type: btree, name: "idx_products_store_id"]
   }
 }
 
@@ -83,11 +72,13 @@ Table "stores" {
   "deleted_at" timestamp
   "name" text [unique, not null]
   "description" text
-  "user_id" uuid
   "is_active" boolean [default: true]
+  "user_id" uuid
 
   Indexes {
     deleted_at [type: btree, name: "idx_stores_deleted_at"]
+    is_active [type: btree, name: "idx_stores_is_active"]
+    user_id [type: btree, name: "idx_stores_user_id"]
   }
 }
 
@@ -109,12 +100,6 @@ Table "users" {
     deleted_at [type: btree, name: "idx_users_deleted_at"]
   }
 }
-
-Ref "fk_order_items_product":"products"."id" < "order_items"."product_id"
-
-Ref "fk_order_items_store":"stores"."id" < "order_items"."store_id"
-
-Ref "fk_orders_order_items":"orders"."id" < "order_items"."order_id"
 
 Ref "fk_orders_user":"users"."id" < "orders"."user_id"
 

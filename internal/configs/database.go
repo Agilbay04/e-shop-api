@@ -1,10 +1,10 @@
 package configs
 
 import (
-	"e-shop-api/internal/constants"
-	"e-shop-api/internal/pkg/logger"
-	"e-shop-api/internal/pkg/querytracker"
-	"e-shop-api/internal/pkg/utils"
+	"bagogo-boiler/internal/constants"
+	"bagogo-boiler/internal/pkg/logger"
+	"bagogo-boiler/internal/pkg/querytracker"
+	"bagogo-boiler/internal/pkg/utils"
 	"fmt"
 	"os"
 
@@ -20,8 +20,14 @@ func ConnectDatabase() *gorm.DB {
 	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	dsn := fmt.Sprintf(constants.PostgresDSN,
-		host, user, password, dbName, port)
+	dsn := fmt.Sprintf(
+		constants.PostgresDSN,
+		host, 
+		user, 
+		password, 
+		dbName, 
+		port,
+	)
 
 	var db *gorm.DB
 	var err error

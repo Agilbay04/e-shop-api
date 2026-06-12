@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"e-shop-api/internal/dtos"
-	"e-shop-api/internal/pkg/utils"
-	"e-shop-api/internal/services"
+	"bagogo-boiler/internal/dtos"
+	"bagogo-boiler/internal/pkg/utils"
+	"bagogo-boiler/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
